@@ -12,7 +12,6 @@ import '@nomiclabs/hardhat-waffle'
 import 'hardhat-abi-exporter'
 import 'hardhat-gas-reporter'
 import 'hardhat-contract-sizer'
-import '@tenderly/hardhat-tenderly'
 import '@openzeppelin/hardhat-upgrades'
 import '@typechain/hardhat'
 import 'solidity-coverage'
@@ -128,10 +127,6 @@ const config: HardhatUserConfig = {
     path: './build/abis',
     clear: false,
     flat: true,
-  },
-  tenderly: {
-    project: process.env.TENDERLY_PROJECT,
-    username: process.env.TENDERLY_USERNAME,
   },
   contractSizer: {
     alphaSort: true,

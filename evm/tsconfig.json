@@ -8,11 +8,14 @@
     "resolveJsonModule": true,
     "esModuleInterop": true
   },
+  "include": [
+    "scripts/**/*.ts",
+    "test/**/*.ts"
+  ],
+  "exclude": ["dist", "node_modules"],
   "files": [
     "./.eslintrc.js",
     "./hardhat.config.ts",
-    "./scripts/**/*.ts",
-    "./test/**/*.ts",
     "node_modules/@nomiclabs/hardhat-ethers/internal/type-extensions.d.ts",
     "node_modules/@nomiclabs/hardhat-etherscan/dist/src/type-extensions.d.ts",
     "node_modules/@nomiclabs/hardhat-waffle/dist/src/type-extensions.d.ts",
