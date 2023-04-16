@@ -103,7 +103,8 @@ const config: HardhatUserConfig = {
       gasPrice: 'auto',
       blockGasLimit: 12000000,
       accounts: {
-        mnemonic: 'myth like bonus scare over problem client lizard pioneer submit female collect',
+        mnemonic:
+          'myth like bonus scare over problem client lizard pioneer submit female collect',
       },
     },
     ganache: {
@@ -131,7 +132,7 @@ const config: HardhatUserConfig = {
   },
   contractSizer: {
     alphaSort: true,
-    runOnCompile: true,
+    runOnCompile: false,
     disambiguatePaths: true,
   },
 }
