@@ -152,6 +152,9 @@ interface ITrocaInterface {
         uint256 balance
     );
     event BalanceWithdrawn(address indexed owner, address indexed token, uint256 amount, uint256 balance);
+    event ProtocolFeePercentageUpdated(uint16 value);
+    event DisputeHandlerFeePercentageCommissionUpdated(uint16 value);
+    event MaxDisputeHandlerFeePercentageUpdated(uint16 value);
 
     /**
      * @notice Create an offer saying what you want and what you're paying.

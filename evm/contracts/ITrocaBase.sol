@@ -36,7 +36,7 @@ abstract contract ITrocaBase is
     mapping(address => bool) public blacklistedTokens;
     mapping(address => mapping(address => uint256)) public tokenBalances;
     uint16 public protocolFeePercentage; // expressed as (x% * 100). 100% is 10000. 0.01% is 1.
-    uint16 public commissionOnDisputeHandlerFeePercentage;
+    uint16 public disputeHandlerFeePercentageCommission;
     uint16 public maxDisputeHandlerFeePercentage;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -44,22 +44,33 @@ abstract contract ITrocaBase is
         _disableInitializers();
     }
 
-    function initialize() public initializer {
+    function initialize(
+        uint16 protocolFees,
+        uint16 escrowFeeCommission,
+        uint16 maxEscrowFeePercentage
+    ) public initializer {
         __Pausable_init();
         __Ownable_init();
         __UUPSUpgradeable_init();
+
+        protocolFeePercentage = protocolFees;
+        disputeHandlerFeePercentageCommission = escrowFeeCommission;
+        maxDisputeHandlerFeePercentage = maxEscrowFeePercentage;
     }
 
     function setProtocolFeePercentage(uint16 value) external onlyOwner {
         protocolFeePercentage = value;
+        emit ProtocolFeePercentageUpdated(value);
     }
 
-    function setCommissionOnDisputeHandlerFeePercentage(uint16 value) external onlyOwner {
-        commissionOnDisputeHandlerFeePercentage = value;
+    function setDisputeHandlerFeePercentageCommission(uint16 value) external onlyOwner {
+        disputeHandlerFeePercentageCommission = value;
+        emit DisputeHandlerFeePercentageCommissionUpdated(value);
     }
 
     function setMaxDisputeHandlerFeePercentage(uint16 value) external onlyOwner {
         maxDisputeHandlerFeePercentage = value;
+        emit MaxDisputeHandlerFeePercentageUpdated(value);
     }
 
     function withdrawTokens(address from, address tokenAddress, uint256 amount) external payable {
@@ -212,7 +223,7 @@ abstract contract ITrocaBase is
             ? 0
             : (data.tokenAmount * data.item.disputeHandlerFeePercentage) / FEE_SCALE;
         uint256 protocolFees = (data.tokenAmount * protocolFeePercentage) +
-            (commissionOnDisputeHandlerFeePercentage * disputeHandlerFees) /
+            (disputeHandlerFeePercentageCommission * disputeHandlerFees) /
             FEE_SCALE;
 
         creditTokenBalance(TREASURY_ADDRESS, data.token, protocolFees, BalanceCreditReason.ProtocolFees);
