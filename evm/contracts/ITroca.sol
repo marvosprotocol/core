@@ -8,6 +8,7 @@ import "./ITrocaBase.sol";
 contract ITroca is ITrocaBase {
     function createOffer(Offer calldata offer, bool useBalance) external payable whenNotPaused {
         checkOfferValidForCreation(offer);
+        usedIds[offer.id] = true;
         offers[offer.id] = offer;
         emit OfferCreated(offer.id, offer.token, offer.creator);
 
@@ -18,6 +19,7 @@ contract ITroca is ITrocaBase {
 
     function placeBid(Bid calldata bid, bool useBalance) external payable whenNotPaused {
         checkBidValidForCreation(bid);
+        usedIds[bid.id] = true;
         bids[bid.id] = bid;
         emit BidPlaced(bid.id, bid.offerId, bid.creator);
 
