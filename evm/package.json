@@ -1,6 +1,6 @@
 {
   "name": "itroca-contracts",
-  "version": "0.0.1",
+  "version": "0.0.1-alpha.1",
   "description": "Smart Contracts for the itroca protocol",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,7 @@
     "lint:sol:fix": "solium --dir ./contracts --fix",
     "prettier": "npm run prettier:ts && npm run prettier:sol",
     "prettier:ts": "prettier --write \"test/**/*.ts\"",
-    "prettier:sol": "prettier --write \"contracts/*.sol\"",
+    "prettier:sol": "prettier --write \"contracts/**/*.sol\"",
     "security": "scripts/security",
     "flatten": "scripts/flatten",
     "verify": "hardhat verify"

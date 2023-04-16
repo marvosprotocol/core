@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import * as dotenv from 'dotenv'
 dotenv.config()
 
@@ -44,9 +45,9 @@ function getDefaultProviderURL(network: string) {
   return `https://${network}.infura.io/v3/${process.env.INFURA_KEY}`
 }
 
-function setupDefaultNetworkProviders(buidlerConfig) {
+function setupDefaultNetworkProviders(builderConfig: any) {
   for (const netConfig of networkConfigs) {
-    buidlerConfig.networks[netConfig.network] = {
+    builderConfig.networks[netConfig.network] = {
       chainId: netConfig.chainId,
       url: getDefaultProviderURL(netConfig.network),
       gas: netConfig.gasPrice || 'auto',
@@ -78,7 +79,7 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: '0.8.15',
+        version: '0.8.18',
         settings: {
           optimizer: {
             enabled: true,
@@ -114,7 +115,7 @@ const config: HardhatUserConfig = {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
   gasReporter: {
-    enabled: process.env.REPORT_GAS ? true : false,
+    enabled: !!process.env.REPORT_GAS,
     showTimeSpent: true,
     currency: 'USD',
     outputFile: 'reports/gas-report.log',
@@ -130,7 +131,7 @@ const config: HardhatUserConfig = {
   },
   contractSizer: {
     alphaSort: true,
-    runOnCompile: false,
+    runOnCompile: true,
     disambiguatePaths: true,
   },
 }
