@@ -23,10 +23,10 @@ abstract contract ITrocaBase is
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using ECDSAUpgradeable for bytes32;
 
-    uint16 internal constant FEE_SCALE = 10000;
-    uint32 internal constant MAXIMUM_ORDER_PROCESSING_TIME = 86400; // 1 day
-    address internal constant TREASURY_ADDRESS = 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF; // treasury address
-    address internal constant COIN_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE; // coin address
+    uint16 public constant FEE_SCALE = 10000;
+    uint32 public constant MAXIMUM_ORDER_PROCESSING_TIME = 86400; // 1 day
+    address public constant TREASURY_ADDRESS = 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF; // treasury address
+    address public constant COIN_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE; // coin address
 
     mapping(uint256 => bool) public usedIds;
     mapping(uint256 => Offer) public offers;
