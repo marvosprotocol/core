@@ -23,7 +23,7 @@ abstract contract ITrocaBase is
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using ECDSAUpgradeable for bytes32;
 
-    uint16 public constant FEE_SCALE = 10000;
+    uint16 public constant FEE_SCALE = 100_00;
     uint32 public constant MAXIMUM_ORDER_PROCESSING_TIME = 86400; // 1 day
     address public constant TREASURY_ADDRESS = 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF; // treasury address
     address public constant COIN_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE; // coin address
@@ -35,9 +35,9 @@ abstract contract ITrocaBase is
     mapping(uint256 => Dispute) public disputes;
     mapping(address => bool) public blacklistedTokens;
     mapping(address => mapping(address => uint256)) public tokenBalances;
-    uint16 public baseFeePercentage; // expressed as (x * 100). 100% is 10000. 0.01% is 1.
-    uint16 public disputeHandlerCommission;
-    uint16 public maxDisputeHandlerFee;
+    uint16 public protocolFeePercentage; // expressed as (x% * 100). 100% is 10000. 0.01% is 1.
+    uint16 public commissionOnDisputeHandlerFeePercentage;
+    uint16 public maxDisputeHandlerFeePercentage;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -48,6 +48,18 @@ abstract contract ITrocaBase is
         __Pausable_init();
         __Ownable_init();
         __UUPSUpgradeable_init();
+    }
+
+    function setProtocolFeePercentage(uint16 value) external onlyOwner {
+        protocolFeePercentage = value;
+    }
+
+    function setCommissionOnDisputeHandlerFeePercentage(uint16 value) external onlyOwner {
+        commissionOnDisputeHandlerFeePercentage = value;
+    }
+
+    function setMaxDisputeHandlerFeePercentage(uint16 value) external onlyOwner {
+        maxDisputeHandlerFeePercentage = value;
     }
 
     function withdrawTokens(address from, address tokenAddress, uint256 amount) external payable {
@@ -121,7 +133,7 @@ abstract contract ITrocaBase is
         ensure(item.disputeHandler != address(0), ErrorReason.DisputeHandlerRequired);
         ensure(item.disputeHandlerFeeReceiver != address(0), ErrorReason.DisputeHandlerFeeReceiverRequired);
         ensure(item.itemData.length > 0, ErrorReason.ItemDataInvalid);
-        ensure(item.disputeHandlerFeePercentage <= maxDisputeHandlerFee, ErrorReason.FeeTooHigh);
+        ensure(item.disputeHandlerFeePercentage <= maxDisputeHandlerFeePercentage, ErrorReason.FeeTooHigh);
         ensure(recoverSigner(hash, item.disputeHandlerProof) == item.disputeHandler, ErrorReason.ItemDataInvalid);
     }
 
@@ -199,8 +211,8 @@ abstract contract ITrocaBase is
         uint256 disputeHandlerFees = !disputed && !data.item.chargeNonDispute
             ? 0
             : (data.tokenAmount * data.item.disputeHandlerFeePercentage) / FEE_SCALE;
-        uint256 protocolFees = (data.tokenAmount * baseFeePercentage) +
-            (disputeHandlerCommission * disputeHandlerFees) /
+        uint256 protocolFees = (data.tokenAmount * protocolFeePercentage) +
+            (commissionOnDisputeHandlerFeePercentage * disputeHandlerFees) /
             FEE_SCALE;
 
         creditTokenBalance(TREASURY_ADDRESS, data.token, protocolFees, BalanceCreditReason.ProtocolFees);
