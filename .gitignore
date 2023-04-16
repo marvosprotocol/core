@@ -81,3 +81,6 @@ typings/
 
 # next.js build output
 .next
+
+# ignore local network deployments
+/evm/.openzeppelin/unknown-1337.json
