@@ -5,13 +5,14 @@ import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-waffle'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { ITroca, ITroca__factory } from '../../build/types'
+import { randomAddressString } from 'hardhat/internal/hardhat-network/provider/utils/random'
+import { getAddress } from 'ethers/lib/utils'
 const { getContractFactory, getSigners } = ethers
 
 describe('ITroca', () => {
   let itroca: ITroca
   let admin: SignerWithAddress
   let alice: SignerWithAddress
-  let bob: SignerWithAddress
   let signers: SignerWithAddress[]
 
   const protocolFees = 25 // 0.2%
@@ -22,7 +23,6 @@ describe('ITroca', () => {
     signers = await getSigners()
     admin = signers[0]
     alice = signers[1]
-    bob = signers[2]
   })
 
   beforeEach(async () => {
@@ -58,8 +58,9 @@ describe('ITroca', () => {
     describe('setDisputeHandlerFeePercentageCommission', () => {
       describe('validations', () => {
         it('should revert when called by any address', async () => {
-          await expect(itroca.connect(bob).setDisputeHandlerFeePercentageCommission(250))
-            .to.be.reverted
+          await expect(
+            itroca.connect(alice).setDisputeHandlerFeePercentageCommission(250),
+          ).to.be.reverted
         })
       })
 
@@ -77,13 +78,13 @@ describe('ITroca', () => {
     describe('setMaxDisputeHandlerFeePercentage', () => {
       describe('validations', () => {
         it('should revert when called by any address', async () => {
-          await expect(itroca.connect(bob).setMaxDisputeHandlerFeePercentage(1000)).to.be
-            .reverted
+          await expect(itroca.connect(alice).setMaxDisputeHandlerFeePercentage(1000)).to
+            .be.reverted
         })
       })
 
       describe('effects', () => {
-        it('should update the commission on dispute handler fees', async () => {
+        it('should update the maximum dispute handler fee', async () => {
           await expect(itroca.connect(admin).setMaxDisputeHandlerFeePercentage(1000))
             .to.emit(itroca, 'MaxDisputeHandlerFeePercentageUpdated')
             .withArgs(1000)
@@ -91,15 +92,34 @@ describe('ITroca', () => {
       })
     })
 
-    describe('pause', () => {
+    describe('setTokenBlacklisted', () => {
       describe('validations', () => {
         it('should revert when called by any address', async () => {
-          await expect(itroca.connect(bob).pause()).to.be.reverted
+          await expect(
+            itroca.connect(alice).setTokenBlacklisted(randomAddressString(), true),
+          ).to.be.reverted
         })
       })
 
       describe('effects', () => {
-        it('should update the commission on dispute handler fees', async () => {
+        it('should update a token blacklist status', async () => {
+          const token = getAddress(randomAddressString())
+          await expect(itroca.connect(admin).setTokenBlacklisted(token, true))
+            .to.emit(itroca, 'TokenBlacklistStatusUpdated')
+            .withArgs(token, admin.address, true)
+        })
+      })
+    })
+
+    describe('pause', () => {
+      describe('validations', () => {
+        it('should revert when called by any address', async () => {
+          await expect(itroca.connect(alice).pause()).to.be.reverted
+        })
+      })
+
+      describe('effects', () => {
+        it('should pause the contract', async () => {
           await expect(itroca.connect(admin).pause())
             .to.emit(itroca, 'Paused')
             .withArgs(admin.address)
@@ -116,7 +136,7 @@ describe('ITroca', () => {
       })
 
       describe('effects', () => {
-        it('should update the commission on dispute handler fees', async () => {
+        it('should unpause the contract', async () => {
           await itroca.connect(admin).pause()
           await expect(itroca.connect(admin).unpause())
             .to.emit(itroca, 'Unpaused')
