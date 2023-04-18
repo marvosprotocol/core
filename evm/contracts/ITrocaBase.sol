@@ -73,6 +73,11 @@ abstract contract ITrocaBase is
         emit MaxDisputeHandlerFeePercentageUpdated(value);
     }
 
+    function setTokenBlacklisted(address token, bool blacklisted) external onlyOwner {
+        blacklistedTokens[token] = blacklisted;
+        emit TokenBlacklistStatusUpdated(token, msg.sender, blacklisted);
+    }
+
     function withdrawTokens(address from, address tokenAddress, uint256 amount) external payable {
         if (from == TREASURY_ADDRESS) {
             _checkOwner();
@@ -94,6 +99,41 @@ abstract contract ITrocaBase is
         }
     }
 
+    function generateHashForOffer(ITrocaInterface.Offer calldata offer) public pure returns (bytes32) {
+        return
+            keccak256(
+                abi.encodePacked(
+                    offer.id,
+                    offer.status,
+                    offer.creator,
+                    offer.token,
+                    offer.minAmount,
+                    offer.maxAmount,
+                    offer.totalAmount,
+                    offer.availableAmount,
+                    offer.orderProcessingTime,
+                    generateHashForItem(offer.item)
+                )
+            );
+    }
+
+    function generateHashForBid(ITrocaInterface.Bid calldata bid) public pure returns (bytes32) {
+        return
+            keccak256(
+                abi.encodePacked(
+                    bid.id,
+                    bid.offerId,
+                    bid.status,
+                    bid.creator,
+                    bid.offerTokenAmount,
+                    bid.token,
+                    bid.tokenAmount,
+                    bid.processingTime,
+                    generateHashForItem(bid.item)
+                )
+            );
+    }
+
     function pause() public onlyOwner {
         _pause();
     }
@@ -109,6 +149,7 @@ abstract contract ITrocaBase is
         ensure(offer.status == OfferStatus.Active, ErrorReason.OfferStatusInvalid);
         if (offer.token != address(0)) {
             ensure(offer.totalAmount > 0, ErrorReason.AmountInvalid);
+            ensure(offer.minAmount > 0, ErrorReason.AmountInvalid);
         } else {
             ensure(offer.totalAmount == 0, ErrorReason.AmountInvalid);
         }
@@ -145,7 +186,7 @@ abstract contract ITrocaBase is
         ensure(item.disputeHandlerFeeReceiver != address(0), ErrorReason.DisputeHandlerFeeReceiverRequired);
         ensure(item.itemData.length > 0, ErrorReason.ItemDataInvalid);
         ensure(item.disputeHandlerFeePercentage <= maxDisputeHandlerFeePercentage, ErrorReason.FeeTooHigh);
-        ensure(recoverSigner(hash, item.disputeHandlerProof) == item.disputeHandler, ErrorReason.ItemDataInvalid);
+        ensure(recoverSigner(hash, item.disputeHandlerProof) == item.disputeHandler, ErrorReason.SignatureInvalid);
     }
 
     function creditTokenBalance(address owner, address token, uint256 amount, BalanceCreditReason reason) internal {
@@ -243,41 +284,6 @@ abstract contract ITrocaBase is
 
     function ensureSenderAddress(address permittedSender) internal view {
         ensure(_msgSender() == permittedSender, ErrorReason.Unauthorized);
-    }
-
-    function generateHashForOffer(ITrocaInterface.Offer calldata offer) internal pure returns (bytes32) {
-        return
-            keccak256(
-                abi.encodePacked(
-                    offer.id,
-                    offer.status,
-                    offer.creator,
-                    offer.token,
-                    offer.minAmount,
-                    offer.maxAmount,
-                    offer.totalAmount,
-                    offer.availableAmount,
-                    offer.orderProcessingTime,
-                    generateHashForItem(offer.item)
-                )
-            );
-    }
-
-    function generateHashForBid(ITrocaInterface.Bid calldata bid) internal pure returns (bytes32) {
-        return
-            keccak256(
-                abi.encodePacked(
-                    bid.id,
-                    bid.offerId,
-                    bid.status,
-                    bid.creator,
-                    bid.offerTokenAmount,
-                    bid.token,
-                    bid.tokenAmount,
-                    bid.processingTime,
-                    generateHashForItem(bid.item)
-                )
-            );
     }
 
     function generateHashForItem(ITrocaInterface.Item calldata item) internal pure returns (bytes32) {

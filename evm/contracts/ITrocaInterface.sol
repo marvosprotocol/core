@@ -155,6 +155,7 @@ interface ITrocaInterface {
     event ProtocolFeePercentageUpdated(uint16 value);
     event DisputeHandlerFeePercentageCommissionUpdated(uint16 value);
     event MaxDisputeHandlerFeePercentageUpdated(uint16 value);
+    event TokenBlacklistStatusUpdated(address indexed token, address indexed updatedBy, bool blacklisted);
 
     /**
      * @notice Create an offer saying what you want and what you're paying.
