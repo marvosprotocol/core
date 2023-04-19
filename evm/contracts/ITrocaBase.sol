@@ -152,6 +152,7 @@ abstract contract ITrocaBase is
             ensure(offer.minAmount > 0, ErrorReason.AmountInvalid);
         } else {
             ensure(offer.totalAmount == 0, ErrorReason.AmountInvalid);
+            ensure(offer.item.hasExternalItem, ErrorReason.TokenOrItemRequired);
         }
         ensure(offer.availableAmount == offer.totalAmount, ErrorReason.AmountInvalid);
         ensure(offer.minAmount <= offer.maxAmount, ErrorReason.AmountInvalid);
@@ -168,12 +169,14 @@ abstract contract ITrocaBase is
         if (bid.token != address(0)) {
             ensure(bid.tokenAmount > 0, ErrorReason.AmountInvalid);
         } else {
-            ensure(bid.tokenAmount == 0 && bid.item.hasExternalItem, ErrorReason.TokenOrItemRequired);
+            ensure(bid.tokenAmount == 0, ErrorReason.AmountInvalid);
+            ensure(bid.item.hasExternalItem, ErrorReason.TokenOrItemRequired);
         }
         ensure(offers[bid.offerId].id == bid.offerId, ErrorReason.OfferNotFound);
         ensure(
             bid.offerTokenAmount >= offers[bid.offerId].minAmount &&
-                bid.offerTokenAmount <= offers[bid.offerId].maxAmount,
+                bid.offerTokenAmount <= offers[bid.offerId].maxAmount &&
+                bid.offerTokenAmount <= offers[bid.offerId].availableAmount,
             ErrorReason.AmountInvalid
         );
         ensure(bid.item.disputeHandler == offers[bid.offerId].item.disputeHandler, ErrorReason.DisputeHandlerMismatch);
