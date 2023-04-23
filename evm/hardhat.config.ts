@@ -16,6 +16,7 @@ import 'hardhat-contract-sizer'
 import '@openzeppelin/hardhat-upgrades'
 import '@typechain/hardhat'
 import 'solidity-coverage'
+import 'solidity-docgen'
 
 // Networks
 
