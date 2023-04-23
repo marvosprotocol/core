@@ -11,7 +11,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "./MarvosInterface.sol";
 
-/// @custom:security-contact ahmad@inferus.xyz
+/// @custom:security-contact security@marvos.org
 abstract contract MarvosBase is
     Initializable,
     ContextUpgradeable,

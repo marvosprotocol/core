@@ -3,8 +3,7 @@ pragma solidity ^0.8.18;
 
 import "./MarvosBase.sol";
 
-/// @custom:security-contact ahmad@inferus.xyz
-
+/// @custom:security-contact security@marvos.org
 contract Marvos is MarvosBase {
     function createOffer(Offer calldata offer, bool useBalance) external payable whenNotPaused {
         checkOfferValidForCreation(offer);
