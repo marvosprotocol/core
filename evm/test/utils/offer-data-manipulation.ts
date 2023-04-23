@@ -1,11 +1,11 @@
-﻿import { ITroca, ITrocaInterface } from '../../build/types'
+﻿import { Marvos, MarvosInterface } from '../../build/types'
 import { Signer } from 'ethers'
 import { arrayify } from 'ethers/lib/utils'
 
-type OfferStruct = ITrocaInterface.OfferStruct
+type OfferStruct = MarvosInterface.OfferStruct
 
 export async function regenerateOffer(
-  itroca: ITroca,
+  marvos: Marvos,
   signer: Signer,
   offer: Readonly<OfferStruct>,
   overrides: Partial<OfferStruct>,
@@ -15,7 +15,7 @@ export async function regenerateOffer(
     item: {
       ...newOffer.item,
       disputeHandlerProof: await signer.signMessage(
-        arrayify(await itroca.generateHashForOffer(newOffer)),
+        arrayify(await marvos.generateHashForOffer(newOffer)),
       ),
     },
   }))

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.18;
 
-import "./ITrocaBase.sol";
+import "./MarvosBase.sol";
 
 /// @custom:security-contact ahmad@inferus.xyz
 
-contract ITroca is ITrocaBase {
+contract Marvos is MarvosBase {
     function createOffer(Offer calldata offer, bool useBalance) external payable whenNotPaused {
         checkOfferValidForCreation(offer);
         usedIds[offer.id] = true;

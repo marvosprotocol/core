@@ -9,16 +9,16 @@ import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import "./ITrocaInterface.sol";
+import "./MarvosInterface.sol";
 
 /// @custom:security-contact ahmad@inferus.xyz
-abstract contract ITrocaBase is
+abstract contract MarvosBase is
     Initializable,
     ContextUpgradeable,
     PausableUpgradeable,
     OwnableUpgradeable,
     UUPSUpgradeable,
-    ITrocaInterface
+    MarvosInterface
 {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using ECDSAUpgradeable for bytes32;
@@ -181,7 +181,7 @@ abstract contract ITrocaBase is
     /**
      * @dev Utility function to generate the hash for an offer to be signed by the dispute handler.
      */
-    function generateHashForOffer(ITrocaInterface.Offer calldata offer) public pure returns (bytes32) {
+    function generateHashForOffer(MarvosInterface.Offer calldata offer) public pure returns (bytes32) {
         return
             keccak256(
                 abi.encodePacked(
@@ -202,7 +202,7 @@ abstract contract ITrocaBase is
     /**
      * @dev Utility function to generate the hash for a bid to be signed by the dispute handler.
      */
-    function generateHashForBid(ITrocaInterface.Bid calldata bid) public pure returns (bytes32) {
+    function generateHashForBid(MarvosInterface.Bid calldata bid) public pure returns (bytes32) {
         return
             keccak256(
                 abi.encodePacked(
@@ -457,7 +457,7 @@ abstract contract ITrocaBase is
     /**
      * @dev Generate the hash for the item.
      */
-    function generateHashForItem(ITrocaInterface.Item calldata item) internal pure returns (bytes32) {
+    function generateHashForItem(MarvosInterface.Item calldata item) internal pure returns (bytes32) {
         return
             keccak256(
                 abi.encodePacked(
@@ -470,7 +470,6 @@ abstract contract ITrocaBase is
                 )
             );
     }
-
 
     /**
      * @dev Recover the signer address from an eth_signMessage call

@@ -11,12 +11,12 @@ import {
 import { randomAddressString } from 'hardhat/internal/hardhat-network/provider/utils/random'
 import { loadBaseTestFixture, loadTestWithTokenFixture, StandardError } from '../utils'
 
-describe('ITroca', () => {
+describe('Marvos', () => {
   describe('Offer Management', () => {
     describe('createOffer', () => {
       describe('validations', () => {
         it('should revert if offer id is not set', async () => {
-          const { itroca, alice, escrow, prefills } = await loadBaseTestFixture()
+          const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
           const offer = prefills.offerPrefill()
 
           offer.id = 0
@@ -27,15 +27,15 @@ describe('ITroca', () => {
           offer.item.disputeHandler = escrow.address
           offer.item.disputeHandlerFeeReceiver = escrow.address
           offer.item.disputeHandlerProof = await escrow.signMessage(
-            arrayify(await itroca.generateHashForOffer(offer)),
+            arrayify(await marvos.generateHashForOffer(offer)),
           )
-          await expect(itroca.connect(alice).createOffer(offer, false))
+          await expect(marvos.connect(alice).createOffer(offer, false))
             .to.be.revertedWith('StandardError')
             .withArgs(StandardError.IdTaken)
         })
 
         it('should revert if offer id has already been used', async () => {
-          const { itroca, alice, escrow, prefills } = await loadBaseTestFixture()
+          const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
           const offer = prefills.offerPrefill()
 
           offer.id = 0
@@ -46,16 +46,16 @@ describe('ITroca', () => {
           offer.item.disputeHandler = escrow.address
           offer.item.disputeHandlerFeeReceiver = escrow.address
           offer.item.disputeHandlerProof = await escrow.signMessage(
-            arrayify(await itroca.generateHashForOffer(offer)),
+            arrayify(await marvos.generateHashForOffer(offer)),
           )
-          // await expect(itroca.connect(alice).createOffer(offer, true))
-          await expect(itroca.connect(alice).createOffer(offer, true))
+          // await expect(marvos.connect(alice).createOffer(offer, true))
+          await expect(marvos.connect(alice).createOffer(offer, true))
             .to.be.revertedWith('StandardError')
             .withArgs(StandardError.IdTaken)
         })
 
         it('should revert if offer creation call is coming from an address other than offer.creator', async () => {
-          const { itroca, alice, bob, escrow, prefills } = await loadBaseTestFixture()
+          const { marvos, alice, bob, escrow, prefills } = await loadBaseTestFixture()
           const offer = prefills.offerPrefill()
 
           offer.id = 1
@@ -66,16 +66,16 @@ describe('ITroca', () => {
           offer.item.disputeHandler = escrow.address
           offer.item.disputeHandlerFeeReceiver = escrow.address
           offer.item.disputeHandlerProof = await escrow.signMessage(
-            arrayify(await itroca.generateHashForOffer(offer)),
+            arrayify(await marvos.generateHashForOffer(offer)),
           )
-          await expect(itroca.connect(alice).createOffer(offer, false))
+          await expect(marvos.connect(alice).createOffer(offer, false))
             .to.be.revertedWith('StandardError')
             .withArgs(StandardError.Unauthorized)
         })
 
         it('should revert if offer includes a blacklisted token', async () => {
           const token = randomAddressString()
-          const { itroca, alice, admin, escrow, prefills } = await loadBaseTestFixture()
+          const { marvos, alice, admin, escrow, prefills } = await loadBaseTestFixture()
           const offer = prefills.offerPrefill()
 
           offer.id = 1
@@ -88,16 +88,16 @@ describe('ITroca', () => {
           offer.item.disputeHandler = escrow.address
           offer.item.disputeHandlerFeeReceiver = escrow.address
           offer.item.disputeHandlerProof = await escrow.signMessage(
-            arrayify(await itroca.generateHashForOffer(offer)),
+            arrayify(await marvos.generateHashForOffer(offer)),
           )
-          await itroca.connect(admin).setTokenBlacklisted(token, true)
-          await expect(itroca.connect(alice).createOffer(offer, false))
+          await marvos.connect(admin).setTokenBlacklisted(token, true)
+          await expect(marvos.connect(alice).createOffer(offer, false))
             .to.be.revertedWith('StandardError')
             .withArgs(StandardError.TokenBlacklisted)
         })
 
         it('should revert if offer status is not active', async () => {
-          const { itroca, alice, escrow, prefills } = await loadBaseTestFixture()
+          const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
           const offer = prefills.offerPrefill()
 
           offer.id = 1
@@ -108,29 +108,29 @@ describe('ITroca', () => {
           offer.item.disputeHandler = escrow.address
           offer.item.disputeHandlerFeeReceiver = escrow.address
           offer.item.disputeHandlerProof = await escrow.signMessage(
-            arrayify(await itroca.generateHashForOffer(offer)),
+            arrayify(await marvos.generateHashForOffer(offer)),
           )
-          await expect(itroca.connect(alice).createOffer(offer, false))
+          await expect(marvos.connect(alice).createOffer(offer, false))
             .to.be.revertedWith('StandardError')
             .withArgs(StandardError.OfferStatusInvalid)
         })
 
         it('should revert if processing time is greater than hard limit', async () => {
-          const { itroca, alice, escrow, prefills } = await loadBaseTestFixture()
+          const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
           const offer = prefills.offerPrefill()
 
           offer.id = 1
           offer.creator = alice.address
           offer.status = 1
-          offer.orderProcessingTime = (await itroca.MAXIMUM_ORDER_PROCESSING_TIME()) + 1
+          offer.orderProcessingTime = (await marvos.MAXIMUM_ORDER_PROCESSING_TIME()) + 1
           offer.item.itemData = '0xabcd'
           offer.item.hasExternalItem = true
           offer.item.disputeHandler = escrow.address
           offer.item.disputeHandlerFeeReceiver = escrow.address
           offer.item.disputeHandlerProof = await escrow.signMessage(
-            arrayify(await itroca.generateHashForOffer(offer)),
+            arrayify(await marvos.generateHashForOffer(offer)),
           )
-          await expect(itroca.connect(alice).createOffer(offer, false))
+          await expect(marvos.connect(alice).createOffer(offer, false))
             .to.be.revertedWith('StandardError')
             .withArgs(StandardError.OrderProcessingTimeInvalid)
         })
@@ -138,7 +138,7 @@ describe('ITroca', () => {
         describe('amount validations', () => {
           describe('when token is not set', () => {
             it('should revert if total amount is not zero', async () => {
-              const { itroca, alice, escrow, prefills } = await loadBaseTestFixture()
+              const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
               const offer = prefills.offerPrefill()
 
               offer.id = 1
@@ -150,15 +150,15 @@ describe('ITroca', () => {
               offer.item.disputeHandler = escrow.address
               offer.item.disputeHandlerFeeReceiver = escrow.address
               offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await itroca.generateHashForOffer(offer)),
+                arrayify(await marvos.generateHashForOffer(offer)),
               )
-              await expect(itroca.connect(alice).createOffer(offer, false))
+              await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
                 .withArgs(StandardError.AmountInvalid)
             })
 
             it('should revert if there is no associated external item', async () => {
-              const { itroca, alice, escrow, prefills } = await loadBaseTestFixture()
+              const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
               const offer = prefills.offerPrefill()
 
               offer.id = 1
@@ -169,15 +169,15 @@ describe('ITroca', () => {
               offer.item.disputeHandler = escrow.address
               offer.item.disputeHandlerFeeReceiver = escrow.address
               offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await itroca.generateHashForOffer(offer)),
+                arrayify(await marvos.generateHashForOffer(offer)),
               )
-              await expect(itroca.connect(alice).createOffer(offer, false))
+              await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
                 .withArgs(StandardError.TokenOrItemRequired)
             })
 
             it('should revert if available amount is not total amount', async () => {
-              const { itroca, alice, escrow, prefills } = await loadBaseTestFixture()
+              const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
               const offer = prefills.offerPrefill()
 
               offer.id = 1
@@ -190,15 +190,15 @@ describe('ITroca', () => {
               offer.item.disputeHandler = escrow.address
               offer.item.disputeHandlerFeeReceiver = escrow.address
               offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await itroca.generateHashForOffer(offer)),
+                arrayify(await marvos.generateHashForOffer(offer)),
               )
-              await expect(itroca.connect(alice).createOffer(offer, false))
+              await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
                 .withArgs(StandardError.AmountInvalid)
             })
 
             it('should revert if max amount is not zero', async () => {
-              const { itroca, alice, escrow, prefills } = await loadBaseTestFixture()
+              const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
               const offer = prefills.offerPrefill()
 
               offer.id = 1
@@ -210,15 +210,15 @@ describe('ITroca', () => {
               offer.item.disputeHandler = escrow.address
               offer.item.disputeHandlerFeeReceiver = escrow.address
               offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await itroca.generateHashForOffer(offer)),
+                arrayify(await marvos.generateHashForOffer(offer)),
               )
-              await expect(itroca.connect(alice).createOffer(offer, false))
+              await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
                 .withArgs(StandardError.AmountInvalid)
             })
 
             it('should revert if min amount is not zero', async () => {
-              const { itroca, alice, escrow, prefills } = await loadBaseTestFixture()
+              const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
               const offer = prefills.offerPrefill()
 
               offer.id = 1
@@ -230,9 +230,9 @@ describe('ITroca', () => {
               offer.item.disputeHandler = escrow.address
               offer.item.disputeHandlerFeeReceiver = escrow.address
               offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await itroca.generateHashForOffer(offer)),
+                arrayify(await marvos.generateHashForOffer(offer)),
               )
-              await expect(itroca.connect(alice).createOffer(offer, false))
+              await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
                 .withArgs(StandardError.AmountInvalid)
             })
@@ -240,7 +240,7 @@ describe('ITroca', () => {
 
           describe('when token is set', () => {
             it('should revert if total amount is zero', async () => {
-              const { itroca, alice, escrow, prefills, sampleToken } =
+              const { marvos, alice, escrow, prefills, sampleToken } =
                 await loadTestWithTokenFixture()
               const offer = prefills.offerPrefill()
 
@@ -253,15 +253,15 @@ describe('ITroca', () => {
               offer.item.disputeHandler = escrow.address
               offer.item.disputeHandlerFeeReceiver = escrow.address
               offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await itroca.generateHashForOffer(offer)),
+                arrayify(await marvos.generateHashForOffer(offer)),
               )
-              await expect(itroca.connect(alice).createOffer(offer, false))
+              await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
                 .withArgs(StandardError.AmountInvalid)
             })
 
             it('should revert if min amount is zero', async () => {
-              const { itroca, alice, escrow, prefills, sampleToken } =
+              const { marvos, alice, escrow, prefills, sampleToken } =
                 await loadTestWithTokenFixture()
               const offer = prefills.offerPrefill()
 
@@ -276,15 +276,15 @@ describe('ITroca', () => {
               offer.item.disputeHandler = escrow.address
               offer.item.disputeHandlerFeeReceiver = escrow.address
               offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await itroca.generateHashForOffer(offer)),
+                arrayify(await marvos.generateHashForOffer(offer)),
               )
-              await expect(itroca.connect(alice).createOffer(offer, false))
+              await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
                 .withArgs(StandardError.AmountInvalid)
             })
 
             it('should revert if available amount is not total amount', async () => {
-              const { itroca, alice, escrow, prefills, sampleToken } =
+              const { marvos, alice, escrow, prefills, sampleToken } =
                 await loadTestWithTokenFixture()
               const offer = prefills.offerPrefill()
 
@@ -298,15 +298,15 @@ describe('ITroca', () => {
               offer.item.disputeHandler = escrow.address
               offer.item.disputeHandlerFeeReceiver = escrow.address
               offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await itroca.generateHashForOffer(offer)),
+                arrayify(await marvos.generateHashForOffer(offer)),
               )
-              await expect(itroca.connect(alice).createOffer(offer, false))
+              await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
                 .withArgs(StandardError.AmountInvalid)
             })
 
             it('should revert if max amount less than min amount', async () => {
-              const { itroca, alice, escrow, prefills, sampleToken } =
+              const { marvos, alice, escrow, prefills, sampleToken } =
                 await loadTestWithTokenFixture()
               const offer = prefills.offerPrefill()
 
@@ -322,15 +322,15 @@ describe('ITroca', () => {
               offer.item.disputeHandler = escrow.address
               offer.item.disputeHandlerFeeReceiver = escrow.address
               offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await itroca.generateHashForOffer(offer)),
+                arrayify(await marvos.generateHashForOffer(offer)),
               )
-              await expect(itroca.connect(alice).createOffer(offer, false))
+              await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
                 .withArgs(StandardError.AmountInvalid)
             })
 
             it('should revert if max amount is greater than total amount', async () => {
-              const { itroca, alice, escrow, prefills, sampleToken } =
+              const { marvos, alice, escrow, prefills, sampleToken } =
                 await loadTestWithTokenFixture()
               const offer = prefills.offerPrefill()
 
@@ -346,17 +346,17 @@ describe('ITroca', () => {
               offer.item.disputeHandler = escrow.address
               offer.item.disputeHandlerFeeReceiver = escrow.address
               offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await itroca.generateHashForOffer(offer)),
+                arrayify(await marvos.generateHashForOffer(offer)),
               )
-              await expect(itroca.connect(alice).createOffer(offer, false))
+              await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
                 .withArgs(StandardError.AmountInvalid)
             })
 
             it('should revert if token is eth and exact value is not transferred', async () => {
-              const { itroca, alice, escrow, prefills } = await loadBaseTestFixture()
+              const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
               const offer = prefills.offerPrefill()
-              const token = await itroca.COIN_ADDRESS()
+              const token = await marvos.COIN_ADDRESS()
 
               offer.id = 1
               offer.creator = alice.address
@@ -370,15 +370,15 @@ describe('ITroca', () => {
               offer.item.disputeHandler = escrow.address
               offer.item.disputeHandlerFeeReceiver = escrow.address
               offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await itroca.generateHashForOffer(offer)),
+                arrayify(await marvos.generateHashForOffer(offer)),
               )
-              await expect(itroca.connect(alice).createOffer(offer, false))
+              await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
                 .withArgs(StandardError.CoinDepositRejected)
             })
 
             it('should revert if token is not a contract', async () => {
-              const { itroca, alice, escrow, prefills } = await loadBaseTestFixture()
+              const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
               const offer = prefills.offerPrefill()
 
               offer.id = 1
@@ -393,15 +393,15 @@ describe('ITroca', () => {
               offer.item.disputeHandler = escrow.address
               offer.item.disputeHandlerFeeReceiver = escrow.address
               offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await itroca.generateHashForOffer(offer)),
+                arrayify(await marvos.generateHashForOffer(offer)),
               )
               await expect(
-                itroca.connect(alice).createOffer(offer, false),
+                marvos.connect(alice).createOffer(offer, false),
               ).to.be.revertedWith('Address: call to non-contract')
             })
 
             it('should revert if token is erc20 but token not approved', async () => {
-              const { itroca, alice, escrow, prefills, sampleToken } =
+              const { marvos, alice, escrow, prefills, sampleToken } =
                 await loadTestWithTokenFixture()
               const offer = prefills.offerPrefill()
 
@@ -417,10 +417,10 @@ describe('ITroca', () => {
               offer.item.disputeHandler = escrow.address
               offer.item.disputeHandlerFeeReceiver = escrow.address
               offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await itroca.generateHashForOffer(offer)),
+                arrayify(await marvos.generateHashForOffer(offer)),
               )
               await expect(
-                itroca.connect(alice).createOffer(offer, false),
+                marvos.connect(alice).createOffer(offer, false),
               ).to.be.revertedWith('ERC20: insufficient allowance')
             })
           })
@@ -428,7 +428,7 @@ describe('ITroca', () => {
 
         describe('item validations', () => {
           it('should revert if item data is not set', async () => {
-            const { itroca, alice, escrow, prefills } = await loadBaseTestFixture()
+            const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
             const offer = prefills.offerPrefill()
 
             offer.id = 1
@@ -439,15 +439,15 @@ describe('ITroca', () => {
             offer.item.disputeHandler = escrow.address
             offer.item.disputeHandlerFeeReceiver = escrow.address
             offer.item.disputeHandlerProof = await escrow.signMessage(
-              arrayify(await itroca.generateHashForOffer(offer)),
+              arrayify(await marvos.generateHashForOffer(offer)),
             )
-            await expect(itroca.connect(alice).createOffer(offer, false))
+            await expect(marvos.connect(alice).createOffer(offer, false))
               .to.be.revertedWith('StandardError')
               .withArgs(StandardError.ItemDataInvalid)
           })
 
           it('should revert if dispute handler address is not set', async () => {
-            const { itroca, alice, escrow, prefills } = await loadBaseTestFixture()
+            const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
             const offer = prefills.offerPrefill()
 
             offer.id = 1
@@ -457,15 +457,15 @@ describe('ITroca', () => {
             offer.item.hasExternalItem = true
             offer.item.disputeHandlerFeeReceiver = escrow.address
             offer.item.disputeHandlerProof = await escrow.signMessage(
-              arrayify(await itroca.generateHashForOffer(offer)),
+              arrayify(await marvos.generateHashForOffer(offer)),
             )
-            await expect(itroca.connect(alice).createOffer(offer, false))
+            await expect(marvos.connect(alice).createOffer(offer, false))
               .to.be.revertedWith('StandardError')
               .withArgs(StandardError.DisputeHandlerRequired)
           })
 
           it('should revert if dispute handler fee receiver address is not set', async () => {
-            const { itroca, alice, escrow, prefills } = await loadBaseTestFixture()
+            const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
             const offer = prefills.offerPrefill()
 
             offer.id = 1
@@ -475,15 +475,15 @@ describe('ITroca', () => {
             offer.item.hasExternalItem = true
             offer.item.disputeHandler = escrow.address
             offer.item.disputeHandlerProof = await escrow.signMessage(
-              arrayify(await itroca.generateHashForOffer(offer)),
+              arrayify(await marvos.generateHashForOffer(offer)),
             )
-            await expect(itroca.connect(alice).createOffer(offer, false))
+            await expect(marvos.connect(alice).createOffer(offer, false))
               .to.be.revertedWith('StandardError')
               .withArgs(StandardError.DisputeHandlerFeeReceiverRequired)
           })
 
           it('should revert if dispute handler fee is too high', async () => {
-            const { itroca, alice, escrow, maxEscrowFeePercentage, prefills } =
+            const { marvos, alice, escrow, maxEscrowFeePercentage, prefills } =
               await loadBaseTestFixture()
             const offer = prefills.offerPrefill()
 
@@ -496,15 +496,15 @@ describe('ITroca', () => {
             offer.item.disputeHandlerFeeReceiver = escrow.address
             offer.item.disputeHandlerFeePercentage = maxEscrowFeePercentage + 1
             offer.item.disputeHandlerProof = await escrow.signMessage(
-              arrayify(await itroca.generateHashForOffer(offer)),
+              arrayify(await marvos.generateHashForOffer(offer)),
             )
-            await expect(itroca.connect(alice).createOffer(offer, false))
+            await expect(marvos.connect(alice).createOffer(offer, false))
               .to.be.revertedWith('StandardError')
               .withArgs(StandardError.FeeTooHigh)
           })
 
           it('should revert if a fake signature is appended to offer', async () => {
-            const { itroca, alice, escrow, prefills } = await loadBaseTestFixture()
+            const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
             const offer = prefills.offerPrefill()
 
             offer.id = 1
@@ -515,9 +515,9 @@ describe('ITroca', () => {
             offer.item.disputeHandler = escrow.address
             offer.item.disputeHandlerFeeReceiver = escrow.address
             offer.item.disputeHandlerProof = await alice.signMessage(
-              arrayify(await itroca.generateHashForOffer(offer)),
+              arrayify(await marvos.generateHashForOffer(offer)),
             )
-            await expect(itroca.connect(alice).createOffer(offer, false))
+            await expect(marvos.connect(alice).createOffer(offer, false))
               .to.be.revertedWith('StandardError')
               .withArgs(StandardError.SignatureInvalid)
           })
@@ -527,50 +527,50 @@ describe('ITroca', () => {
       describe('effects', () => {
         describe('when the offer does not include a token', () => {
           it('should create an offer without a token', async () => {
-            const { itroca, alice, offer } = await loadOfferWithoutTokenFixture()
-            await expect(itroca.connect(alice).createOffer(offer, false))
-              .to.emit(itroca, 'OfferCreated')
+            const { marvos, alice, offer } = await loadOfferWithoutTokenFixture()
+            await expect(marvos.connect(alice).createOffer(offer, false))
+              .to.emit(marvos, 'OfferCreated')
               .withArgs(offer.id, offer.token, alice.address)
           })
         })
 
         describe('when the offer includes a token', () => {
           it('should create an offer with the token and transfer token to the contract', async () => {
-            const { itroca, admin, alice, offer, sampleToken } =
+            const { marvos, admin, alice, offer, sampleToken } =
               await loadOfferWithTokenFixture()
             const amount = parseEther('10')
             await sampleToken.connect(admin).transfer(alice.address, amount)
-            await sampleToken.connect(alice).approve(itroca.address, amount)
-            await expect(itroca.connect(alice).createOffer(offer, false))
+            await sampleToken.connect(alice).approve(marvos.address, amount)
+            await expect(marvos.connect(alice).createOffer(offer, false))
               .changeTokenBalances(
                 sampleToken.address,
-                [itroca.address, alice.address],
+                [marvos.address, alice.address],
                 [amount, 0],
               )
-              .to.emit(itroca, 'OfferCreated')
+              .to.emit(marvos, 'OfferCreated')
               .withArgs(offer.id, offer.token, alice.address)
           })
 
           it('should create an offer if the correct amount of ETH is transferred to the contract', async () => {
             const {
-              itroca,
+              marvos,
               alice,
               escrow,
               offer: tokenOffer,
             } = await loadOfferWithTokenFixture()
 
-            const offer = await regenerateOffer(itroca, escrow, tokenOffer, {
-              token: await itroca.COIN_ADDRESS(),
+            const offer = await regenerateOffer(marvos, escrow, tokenOffer, {
+              token: await marvos.COIN_ADDRESS(),
             })
 
             const amount = parseEther('10')
             await expect(
-              itroca.connect(alice).createOffer(offer, false, {
+              marvos.connect(alice).createOffer(offer, false, {
                 value: amount,
               }),
             )
-              .changeEtherBalances([itroca.address, alice.address], [amount, 0])
-              .to.emit(itroca, 'OfferCreated')
+              .changeEtherBalances([marvos.address, alice.address], [amount, 0])
+              .to.emit(marvos, 'OfferCreated')
               .withArgs(offer.id, offer.token, alice.address)
           })
         })

@@ -1,9 +1,9 @@
 ﻿import { constants } from 'ethers'
-import { ITrocaInterface } from '../../build/types'
+import { MarvosInterface } from '../../build/types'
 
 const prefills: {
-  offerPrefill: () => ITrocaInterface.OfferStruct
-  bidPrefill: () => ITrocaInterface.BidStruct
+  offerPrefill: () => MarvosInterface.OfferStruct
+  bidPrefill: () => MarvosInterface.BidStruct
 } = {
   offerPrefill: () => ({
     id: 0,

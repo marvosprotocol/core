@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.18;
 
-interface ITrocaInterface {
+interface MarvosInterface {
     /**
      * @dev The status of an offer. An offer must never be in the unset state.
      * An offer can only receive or accept bids when it's active. The state of an offer has no
@@ -118,20 +118,17 @@ interface ITrocaInterface {
          * is not disputed.
          */
         bool chargeNonDispute;
-
         /**
          * @dev Used to specify whether the offer or bid includes an external item being supplied. An offer/bid without
          * tokens must have external item(s).
          */
         bool hasExternalItem;
-
         /**
          * @dev The amount of associated tokens the dispute handler is charging for their services as dispute handler.
          * A value of 1 represents 0.01%. A value of 10000 represents 100%. The value must be less than the defined
          * maxDisputeHandlerFeePercentage at the time of the order creation / bid creation.
          */
         uint16 disputeHandlerFeePercentage;
-
         /**
          * @dev The address of the dispute handler. The dispute handler for a bid must match the dispute handler for the
          * associated offer. The dispute handler is a very important entity for securing the network. A dispute handler
@@ -141,18 +138,15 @@ interface ITrocaInterface {
          * important in determining whether users trust a dispute handler with their orders.
          */
         address disputeHandler;
-
         /**
          * @dev The address of the receiver for dispute handler fees.
          */
         address disputeHandlerFeeReceiver;
-
         /**
          * @dev The URI to the item data. This should be an IPFS URI to the associated item data specifying any external
          * items being supplied according to the External Data Spec.
          */
         bytes itemData;
-
         /**
          * @dev The signature of the dispute handler on the offer or bid validating that the dispute handler guarantees
          * they can provide the necessary support to get the order to completion.
@@ -168,49 +162,40 @@ interface ITrocaInterface {
          * @dev The offer id must be specified on creation. It can be any random 32-bytes integer.
          */
         uint256 id;
-
         /**
          * @dev The offer status must be Active on creation. See the documentation on OfferStatus.
          */
         OfferStatus status;
-
         /**
          * @dev The creator of the offer. Must match the user calling createOffer.
          */
         address creator;
-
         /**
          * @dev The token being supplied in this offer. Must be the zero address if no token is being supplied.
          * The supplied token must not be blacklisted at the time of creation.
          */
         address token;
-
         /**
          * @dev The minimum amount of token that a bid can buy. Must be zero if no token is being supplied.
          */
         uint256 minAmount;
-
         /**
          * @dev The maximum amount of token that a bid can buy. Must be zero if no token is being supplied.
          */
         uint256 maxAmount;
-
         /**
          * @dev The total amount of token being supplied in the offer. Must be zero if no token is being supplied.
          */
         uint256 totalAmount;
-
         /**
          * @dev The amount of token that is available for orders. Must be equal to totalAmount on creation.
          */
         uint256 availableAmount;
-
         /**
          * @dev The amount of time required for an order to be processed. After orders are accepted, they must be
          * processed within the orderProcessingTime. When the time elapses, the order can be canceled.
          */
         uint32 orderProcessingTime;
-
         /**
          * @dev The associated item for the offer.
          */
@@ -225,50 +210,41 @@ interface ITrocaInterface {
          * @dev The bid id must be specified on creation. It can be any random 32-bytes integer.
          */
         uint256 id;
-
         /**
          * @dev The id of the offer being bid on. The offer must exist and must be Active to be bid on.
          */
         uint256 offerId;
-
         /**
          * @dev The status of the bid. See the documentation of BidStatus.
          */
         BidStatus status;
-
         /**
          * @dev The address of the bid creator. Must match the user calling placeBid.
          */
         address creator;
-
         /**
          * @dev The amount of offer.token being bought in this bid. The value must be between the
          * minAmount and maxAmount of the offer.
          */
         uint256 offerTokenAmount;
-
         /**
          * @dev The token being supplied. Must be the zero address if no token is being supplied. The token must not
          * be a blacklisted token.
          */
         address token;
-
         /**
          * @dev The amount of token being supplied. Must be zero if no token is being supplied.
          */
         uint256 tokenAmount;
-
         /**
          * @dev The processing time of the order. The effective processing time is the maximum of the offer and bid.
          */
         uint32 processingTime;
-
         /**
          * @dev The associated item for the bid.
          */
         Item item;
     }
-
 
     /**
      * @dev OrderData holds the data for one side of the order. Specifies the token being released, processing status,
@@ -279,28 +255,23 @@ interface ITrocaInterface {
          * @dev Used to specify whether the off-chain item being supplied has been paid.
          */
         bool paid;
-
         /**
          * @dev Used to specify whether the off-chain item being demanded has been received.
          */
         bool receivedOffChainItem;
-
         /**
          * @dev The token being supplied.
          */
         address token;
-
         /**
          * @dev The amount of the token being supplied.
          */
         uint256 tokenAmount;
-
         /**
          * @dev Off-chain item data for this side of the order.
          */
         Item item;
     }
-
 
     /**
      * @dev The primary order struct. Bid acceptance triggers order creation.
@@ -310,43 +281,35 @@ interface ITrocaInterface {
          * @dev The order id is the bid id.
          */
         uint256 id;
-
         /**
          * @dev The status of the order. See the documentation for OrderStatus.
          */
         OrderStatus status;
-
         /**
          * @dev The effective processingTime for the order.
          */
         uint32 processingTime;
-
         /**
          * @dev The creator of the offer that triggered the order.
          */
         address creator;
-
         /**
          * @dev The creator of the bid that triggered the order.
          */
         address bidder;
-
         /**
          * @dev The OrderData holding the creator side of the order data.
          */
         OrderData creatorOrderData;
-
         /**
          * @dev The OrderData holding the bidder side of the order data.
          */
         OrderData bidderOrderData;
-
         /**
          * @dev The timestamp of the block in which the order was created.
          */
         uint256 creationTime;
     }
-
 
     /**
      * @dev Used to hold information about a dispute.
@@ -356,17 +319,14 @@ interface ITrocaInterface {
          * @dev The id of the disputed order.
          */
         uint256 orderId;
-
         /**
          * @dev The address of the dispute handler.
          */
         address handler;
-
         /**
          * @dev The dispute resolution.
          */
         DisputeResolution resolution;
-
         /**
          * @dev URI of the Dispute Initialization Data as specified by the External Data Spec.
          */
@@ -539,7 +499,7 @@ interface ITrocaInterface {
     function resolveDispute(uint256 orderId, DisputeResolution resolution) external;
 
     /**
-     * @notice Withdraw any tokens from your itroca balance. Your balance gets funded when you cancel orders or bids.
+     * @notice Withdraw any tokens from your marvos balance. Your balance gets funded when you cancel orders or bids.
      * You can re-use your balance when creating an offer or bidding on an offer. If your balance is insufficient,
      * your balance will be used up and the remaining amount will be charged to your token balance.
      */

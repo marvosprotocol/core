@@ -1,7 +1,7 @@
 ﻿/* eslint-disable @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access */
 import {
-  ITroca,
-  ITroca__factory,
+  Marvos,
+  Marvos__factory,
   SampleToken,
   SampleToken__factory,
 } from '../../build/types'
@@ -35,16 +35,16 @@ async function baseTestFixture() {
   const signers = await getSigners()
   const [admin, alice, bob, escrow] = signers
 
-  const itrocaFactory = (await getContractFactory('ITroca', admin)) as ITroca__factory
-  let itroca = (await upgrades.deployProxy(
-    itrocaFactory,
+  const marvosFactory = (await getContractFactory('Marvos', admin)) as Marvos__factory
+  let marvos = (await upgrades.deployProxy(
+    marvosFactory,
     [protocolFees, escrowFeeCommission, maxEscrowFeePercentage],
     {
       initializer: 'initialize',
     },
-  )) as ITroca
-  await itroca.deployed()
-  itroca = itroca.connect(alice)
+  )) as Marvos
+  await marvos.deployed()
+  marvos = marvos.connect(alice)
 
   return {
     prefills,
@@ -55,7 +55,7 @@ async function baseTestFixture() {
     alice,
     bob,
     escrow,
-    itroca,
+    marvos,
   }
 }
 async function testWithTokenFixture() {
@@ -68,7 +68,7 @@ async function testWithTokenFixture() {
     alice,
     bob,
     escrow,
-    itroca,
+    marvos,
   } = await loadFixture(baseTestFixture)
 
   const tokenFactory = (await getContractFactory(
@@ -90,7 +90,7 @@ async function testWithTokenFixture() {
     alice,
     bob,
     escrow,
-    itroca,
+    marvos,
     sampleToken,
   }
 }
@@ -105,7 +105,7 @@ async function offerWithoutTokenFixture() {
     alice,
     bob,
     escrow,
-    itroca,
+    marvos,
   } = await loadBaseTestFixture()
   const offer = prefills.offerPrefill()
   offer.id = 1
@@ -116,7 +116,7 @@ async function offerWithoutTokenFixture() {
   offer.item.disputeHandler = escrow.address
   offer.item.disputeHandlerFeeReceiver = escrow.address
   offer.item.disputeHandlerProof = await escrow.signMessage(
-    arrayify(await itroca.generateHashForOffer(offer)),
+    arrayify(await marvos.generateHashForOffer(offer)),
   )
 
   return {
@@ -128,7 +128,7 @@ async function offerWithoutTokenFixture() {
     alice,
     bob,
     escrow,
-    itroca,
+    marvos,
     offer: Object.freeze(offer),
   }
 }
@@ -143,7 +143,7 @@ async function offerWithTokenFixture() {
     alice,
     bob,
     escrow,
-    itroca,
+    marvos,
     sampleToken,
   } = await loadTestWithTokenFixture()
   const offer = prefills.offerPrefill()
@@ -159,7 +159,7 @@ async function offerWithTokenFixture() {
   offer.item.disputeHandler = escrow.address
   offer.item.disputeHandlerFeeReceiver = escrow.address
   offer.item.disputeHandlerProof = await escrow.signMessage(
-    arrayify(await itroca.generateHashForOffer(offer)),
+    arrayify(await marvos.generateHashForOffer(offer)),
   )
 
   return {
@@ -171,7 +171,7 @@ async function offerWithTokenFixture() {
     alice,
     bob,
     escrow,
-    itroca,
+    marvos,
     sampleToken,
     offer: Object.freeze(offer),
   }
