@@ -176,8 +176,9 @@ contract ITroca is ITrocaBase {
     function resolveDispute(uint256 orderId, DisputeResolution resolution) external whenNotPaused {
         Order storage order = orders[orderId];
         ensure(order.status == OrderStatus.Disputed, ErrorReason.OrderInactive);
-        ensureSenderAddress(order.creatorOrderData.item.disputeHandler);
+        ensureSenderAddress(disputes[orderId].handler);
 
+        disputes[orderId].resolution = resolution;
         if (resolution == DisputeResolution.Cancel) {
             order.status = OrderStatus.Canceled;
             emit OrderStatusChanged(order.id, OrderStatus.Canceled);
