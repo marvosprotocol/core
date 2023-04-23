@@ -39,6 +39,7 @@ contract ITroca is ITrocaBase {
         // lock the amount for the order
         offer.availableAmount -= bid.offerTokenAmount;
         bid.status = BidStatus.Accepted;
+        emit BidStatusChanged(bidId, BidStatus.Accepted);
 
         uint32 processingTime = bid.processingTime > offer.orderProcessingTime
             ? bid.processingTime
