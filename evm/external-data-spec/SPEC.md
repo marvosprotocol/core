@@ -6,7 +6,7 @@ result, clients have a responsibility to ensure data visibility so that traders 
 
 The EDS details the specification for the data fields. We have chosen to define the EDS using TypeScript type
 definitions because of the simplicity and expressiveness of TypeScript's type system. The type definitions can be found
-[here](https://github.com/marvosprotocol/core/tree/evm/external-data-spec/spec.ts).
+[here](https://github.com/marvosprotocol/core/blob/main/evm/external-data-spec/spec.ts).
 
 ### Non-Fungible External Item Registry 
 
