@@ -167,7 +167,7 @@ interface MarvosInterface {
          */
         OfferStatus status;
         /**
-         * @dev The creator of the offer. Must match the user calling createOffer.
+         * @dev The creator of the offer. Must match the user that called createOffer.
          */
         address creator;
         /**
@@ -416,14 +416,13 @@ interface MarvosInterface {
     event TokenBlacklistStatusUpdated(address indexed token, address indexed updatedBy, bool blacklisted);
 
     /**
-     * @notice Create an offer saying what you want and what you're paying.
-     * Your tokens will be held by the contract so that orders can be processed smoothly.
-     * You can cancel your offer to get your tokens back anytime you wish.
-     * Any tokens that have been locked for orders will not be returned unless the order gets canceled.
-     *
      * @dev The offer ID can be any randomly generated 32-bytes integer that has not been used.
      * The offer must be signed by the dispute manager (escrow) in charge of handling disputes
-     * should any arise.
+     * should any arise. See the documentation on the Offer struct for more information.
+     *
+     * When useBalance is true, the contract will attempt to use the user's balance for the supplied token.
+     * If the balance is not sufficient, it will charge the user the difference. Take special note when the
+     * token is the native cryptocurrency. The value specified in the transaction must match the difference.
      */
     function createOffer(Offer calldata offer, bool useBalance) external payable;
 
@@ -435,15 +434,11 @@ interface MarvosInterface {
     function updateOfferStatus(uint256 offerId, OfferStatus status) external;
 
     /**
-     * @notice Place a bid on an existing offer. Your tokens will be held by the contract in case your bid is accepted.
-     * You can cancel your bid to get your tokens back if it doesn't get accepted. Your bid must be vetted by the same
-     * escrow that vet the offer.
-     *
      * @dev Place a compatible bid on an offer. To be compatible, a bid must be signed by the same
      * dispute manager as the offer.
      * The bid ID can be any randomly generated 32-bytes integer that has not been used.
      * The bid must be signed by the dispute manager (escrow) in charge of handling disputes
-     * should any arise.
+     * should any arise. See the documentation on the bid struct for more information.
      */
     function placeBid(Bid calldata bid, bool useBalance) external payable;
 
