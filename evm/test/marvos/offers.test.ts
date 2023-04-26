@@ -418,6 +418,15 @@ describe('Marvos', () => {
       })
     })
 
-    describe('updateOfferStatus', () => {})
+    describe('updateOfferStatus', () => {
+      describe('pause', () => {
+        describe('validations', () => {})
+        describe('effects', () => {})
+      })
+      describe('cancel', () => {
+        describe('when the offer has no token', () => {})
+        describe('when the offer has a token', () => {})
+      })
+    })
   })
 })
