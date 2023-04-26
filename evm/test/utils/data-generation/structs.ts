@@ -1,11 +1,11 @@
 ﻿import { constants } from 'ethers'
-import { MarvosInterface } from '../../build/types'
+import { MarvosInterface } from '../../../build/types'
 
-const prefills: {
-  offerPrefill: () => MarvosInterface.OfferStruct
-  bidPrefill: () => MarvosInterface.BidStruct
+const structs: {
+  offer: Readonly<MarvosInterface.OfferStruct>
+  bid: Readonly<MarvosInterface.BidStruct>
 } = {
-  offerPrefill: () => ({
+  offer: Object.freeze({
     id: 0,
     maxAmount: 0,
     minAmount: 0,
@@ -25,7 +25,7 @@ const prefills: {
       disputeHandlerProof: '0x',
     },
   }),
-  bidPrefill: () => ({
+  bid: Object.freeze({
     id: 0,
     token: constants.AddressZero,
     creator: constants.AddressZero,
@@ -46,4 +46,4 @@ const prefills: {
   }),
 }
 
-export { prefills }
+export { structs }

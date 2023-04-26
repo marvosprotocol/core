@@ -7,8 +7,7 @@ import {
 } from '../../build/types'
 import { ethers, upgrades } from 'hardhat'
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers'
-import { arrayify, parseEther } from 'ethers/lib/utils'
-import { prefills } from './prefills'
+import { parseEther } from 'ethers/lib/utils'
 const { getContractFactory, getSigners } = ethers
 
 export async function loadBaseTestFixture() {
@@ -17,14 +16,6 @@ export async function loadBaseTestFixture() {
 
 export async function loadTestWithTokenFixture() {
   return await loadFixture(testWithTokenFixture)
-}
-
-export async function loadOfferWithTokenFixture() {
-  return await loadFixture(offerWithTokenFixture)
-}
-
-export async function loadOfferWithoutTokenFixture() {
-  return await loadFixture(offerWithoutTokenFixture)
 }
 
 async function baseTestFixture() {
@@ -47,10 +38,6 @@ async function baseTestFixture() {
   marvos = marvos.connect(alice)
 
   return {
-    prefills,
-    protocolFees,
-    escrowFeeCommission,
-    maxEscrowFeePercentage,
     admin,
     alice,
     bob,
@@ -59,17 +46,7 @@ async function baseTestFixture() {
   }
 }
 async function testWithTokenFixture() {
-  const {
-    prefills,
-    protocolFees,
-    escrowFeeCommission,
-    maxEscrowFeePercentage,
-    admin,
-    alice,
-    bob,
-    escrow,
-    marvos,
-  } = await loadFixture(baseTestFixture)
+  const { admin, alice, bob, escrow, marvos } = await loadFixture(baseTestFixture)
 
   const tokenFactory = (await getContractFactory(
     'SampleToken',
@@ -82,97 +59,11 @@ async function testWithTokenFixture() {
   sampleToken = sampleToken.connect(alice)
 
   return {
-    prefills,
-    protocolFees,
-    escrowFeeCommission,
-    maxEscrowFeePercentage,
     admin,
     alice,
     bob,
     escrow,
     marvos,
     sampleToken,
-  }
-}
-
-async function offerWithoutTokenFixture() {
-  const {
-    prefills,
-    protocolFees,
-    escrowFeeCommission,
-    maxEscrowFeePercentage,
-    admin,
-    alice,
-    bob,
-    escrow,
-    marvos,
-  } = await loadBaseTestFixture()
-  const offer = prefills.offerPrefill()
-  offer.id = 1
-  offer.creator = alice.address
-  offer.status = 1
-  offer.item.itemData = '0xabcd'
-  offer.item.hasExternalItem = true
-  offer.item.disputeHandler = escrow.address
-  offer.item.disputeHandlerFeeReceiver = escrow.address
-  offer.item.disputeHandlerProof = await escrow.signMessage(
-    arrayify(await marvos.generateHashForOffer(offer)),
-  )
-
-  return {
-    prefills,
-    protocolFees,
-    escrowFeeCommission,
-    maxEscrowFeePercentage,
-    admin,
-    alice,
-    bob,
-    escrow,
-    marvos,
-    offer: Object.freeze(offer),
-  }
-}
-
-async function offerWithTokenFixture() {
-  const {
-    prefills,
-    protocolFees,
-    escrowFeeCommission,
-    maxEscrowFeePercentage,
-    admin,
-    alice,
-    bob,
-    escrow,
-    marvos,
-    sampleToken,
-  } = await loadTestWithTokenFixture()
-  const offer = prefills.offerPrefill()
-  offer.id = 1
-  offer.creator = alice.address
-  offer.status = 1
-  offer.item.itemData = '0xabcd'
-  offer.token = sampleToken.address
-  offer.maxAmount = parseEther('1')
-  offer.minAmount = parseEther('0.1')
-  offer.totalAmount = parseEther('10')
-  offer.availableAmount = parseEther('10')
-  offer.item.disputeHandler = escrow.address
-  offer.item.disputeHandlerFeeReceiver = escrow.address
-  offer.item.disputeHandlerProof = await escrow.signMessage(
-    arrayify(await marvos.generateHashForOffer(offer)),
-  )
-
-  return {
-    prefills,
-    protocolFees,
-    escrowFeeCommission,
-    maxEscrowFeePercentage,
-    admin,
-    alice,
-    bob,
-    escrow,
-    marvos,
-    sampleToken,
-    offer: Object.freeze(offer),
   }
 }

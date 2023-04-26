@@ -1,135 +1,85 @@
 ﻿/* eslint-disable @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/restrict-plus-operands */
 import { expect } from 'chai'
-import '@nomiclabs/hardhat-ethers'
-import '@nomiclabs/hardhat-waffle'
-import { arrayify, parseEther } from 'ethers/lib/utils'
+import { constants } from 'ethers'
+import { arrayify } from 'ethers/lib/utils'
+import '../../hardhat.config'
 import {
-  loadOfferWithoutTokenFixture,
-  loadOfferWithTokenFixture,
-  regenerateOffer,
+  generateOfferWithoutToken,
+  generateOfferWithToken,
+  loadBaseTestFixture,
+  loadTestWithTokenFixture,
+  StandardError,
 } from '../utils'
-import { randomAddressString } from 'hardhat/internal/hardhat-network/provider/utils/random'
-import { loadBaseTestFixture, loadTestWithTokenFixture, StandardError } from '../utils'
 
 describe('Marvos', () => {
   describe('Offer Management', () => {
     describe('createOffer', () => {
       describe('validations', () => {
         it('should revert if offer id is not set', async () => {
-          const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
-          const offer = prefills.offerPrefill()
-
-          offer.id = 0
-          offer.creator = alice.address
-          offer.status = 1
-          offer.item.itemData = '0xabcd'
-          offer.item.hasExternalItem = true
-          offer.item.disputeHandler = escrow.address
-          offer.item.disputeHandlerFeeReceiver = escrow.address
-          offer.item.disputeHandlerProof = await escrow.signMessage(
-            arrayify(await marvos.generateHashForOffer(offer)),
-          )
+          const { marvos, alice, escrow } = await loadBaseTestFixture()
+          const offer = await generateOfferWithoutToken(marvos, alice, escrow, {
+            id: 0,
+          })
           await expect(marvos.connect(alice).createOffer(offer, false))
             .to.be.revertedWith('StandardError')
             .withArgs(StandardError.IdTaken)
         })
 
         it('should revert if offer id has already been used', async () => {
-          const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
-          const offer = prefills.offerPrefill()
+          const { marvos, alice, escrow } = await loadBaseTestFixture()
+          const offer = await generateOfferWithoutToken(marvos, alice, escrow, {
+            id: 1,
+          })
 
-          offer.id = 0
-          offer.creator = alice.address
-          offer.status = 1
-          offer.item.itemData = '0xabcd'
-          offer.item.hasExternalItem = true
-          offer.item.disputeHandler = escrow.address
-          offer.item.disputeHandlerFeeReceiver = escrow.address
-          offer.item.disputeHandlerProof = await escrow.signMessage(
-            arrayify(await marvos.generateHashForOffer(offer)),
-          )
-          // await expect(marvos.connect(alice).createOffer(offer, true))
+          await marvos.connect(alice).createOffer(offer, true)
           await expect(marvos.connect(alice).createOffer(offer, true))
             .to.be.revertedWith('StandardError')
             .withArgs(StandardError.IdTaken)
         })
 
         it('should revert if offer creation call is coming from an address other than offer.creator', async () => {
-          const { marvos, alice, bob, escrow, prefills } = await loadBaseTestFixture()
-          const offer = prefills.offerPrefill()
+          const { marvos, alice, bob, escrow } = await loadBaseTestFixture()
+          const offer = await generateOfferWithoutToken(marvos, alice, escrow, {
+            creator: bob.address,
+          })
 
-          offer.id = 1
-          offer.creator = bob.address
-          offer.status = 1
-          offer.item.itemData = '0xabcd'
-          offer.item.hasExternalItem = true
-          offer.item.disputeHandler = escrow.address
-          offer.item.disputeHandlerFeeReceiver = escrow.address
-          offer.item.disputeHandlerProof = await escrow.signMessage(
-            arrayify(await marvos.generateHashForOffer(offer)),
-          )
           await expect(marvos.connect(alice).createOffer(offer, false))
             .to.be.revertedWith('StandardError')
             .withArgs(StandardError.Unauthorized)
         })
 
         it('should revert if offer includes a blacklisted token', async () => {
-          const token = randomAddressString()
-          const { marvos, alice, admin, escrow, prefills } = await loadBaseTestFixture()
-          const offer = prefills.offerPrefill()
-
-          offer.id = 1
-          offer.creator = alice.address
-          offer.status = 1
-          offer.token = token
-          offer.availableAmount = offer.totalAmount = 10
-          offer.item.itemData = '0xabcd'
-          offer.item.hasExternalItem = true
-          offer.item.disputeHandler = escrow.address
-          offer.item.disputeHandlerFeeReceiver = escrow.address
-          offer.item.disputeHandlerProof = await escrow.signMessage(
-            arrayify(await marvos.generateHashForOffer(offer)),
+          const { marvos, alice, admin, escrow, sampleToken } =
+            await loadTestWithTokenFixture()
+          const offer = await generateOfferWithToken(
+            marvos,
+            alice,
+            escrow,
+            sampleToken.address,
           )
-          await marvos.connect(admin).setTokenBlacklisted(token, true)
+
+          await marvos.connect(admin).setTokenBlacklisted(sampleToken.address, true)
           await expect(marvos.connect(alice).createOffer(offer, false))
             .to.be.revertedWith('StandardError')
             .withArgs(StandardError.TokenBlacklisted)
         })
 
         it('should revert if offer status is not active', async () => {
-          const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
-          const offer = prefills.offerPrefill()
+          const { marvos, alice, escrow } = await loadBaseTestFixture()
+          const offer = await generateOfferWithoutToken(marvos, alice, escrow, {
+            status: 0,
+          })
 
-          offer.id = 1
-          offer.creator = alice.address
-          offer.status = 0
-          offer.item.itemData = '0xabcd'
-          offer.item.hasExternalItem = true
-          offer.item.disputeHandler = escrow.address
-          offer.item.disputeHandlerFeeReceiver = escrow.address
-          offer.item.disputeHandlerProof = await escrow.signMessage(
-            arrayify(await marvos.generateHashForOffer(offer)),
-          )
           await expect(marvos.connect(alice).createOffer(offer, false))
             .to.be.revertedWith('StandardError')
             .withArgs(StandardError.OfferStatusInvalid)
         })
 
         it('should revert if processing time is greater than hard limit', async () => {
-          const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
-          const offer = prefills.offerPrefill()
-
-          offer.id = 1
-          offer.creator = alice.address
-          offer.status = 1
-          offer.orderProcessingTime = (await marvos.MAXIMUM_ORDER_PROCESSING_TIME()) + 1
-          offer.item.itemData = '0xabcd'
-          offer.item.hasExternalItem = true
-          offer.item.disputeHandler = escrow.address
-          offer.item.disputeHandlerFeeReceiver = escrow.address
-          offer.item.disputeHandlerProof = await escrow.signMessage(
-            arrayify(await marvos.generateHashForOffer(offer)),
-          )
+          const { marvos, alice, escrow } = await loadBaseTestFixture()
+          const offer = await generateOfferWithoutToken(marvos, alice, escrow, {
+            orderProcessingTime: (await marvos.MAXIMUM_ORDER_PROCESSING_TIME()) + 1,
+          })
           await expect(marvos.connect(alice).createOffer(offer, false))
             .to.be.revertedWith('StandardError')
             .withArgs(StandardError.OrderProcessingTimeInvalid)
@@ -138,38 +88,25 @@ describe('Marvos', () => {
         describe('amount validations', () => {
           describe('when token is not set', () => {
             it('should revert if total amount is not zero', async () => {
-              const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
-              const offer = prefills.offerPrefill()
-
-              offer.id = 1
-              offer.creator = alice.address
-              offer.status = 1
-              offer.totalAmount = 10
-              offer.item.itemData = '0xabcd'
-              offer.item.hasExternalItem = true
-              offer.item.disputeHandler = escrow.address
-              offer.item.disputeHandlerFeeReceiver = escrow.address
-              offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await marvos.generateHashForOffer(offer)),
-              )
+              const { marvos, alice, escrow } = await loadBaseTestFixture()
+              const offer = await generateOfferWithoutToken(marvos, alice, escrow, {
+                totalAmount: 10,
+              })
               await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
                 .withArgs(StandardError.AmountInvalid)
             })
 
             it('should revert if there is no associated external item', async () => {
-              const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
-              const offer = prefills.offerPrefill()
-
-              offer.id = 1
-              offer.creator = alice.address
-              offer.status = 1
-              offer.item.itemData = '0xabcd'
-              offer.item.hasExternalItem = false
-              offer.item.disputeHandler = escrow.address
-              offer.item.disputeHandlerFeeReceiver = escrow.address
-              offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await marvos.generateHashForOffer(offer)),
+              const { marvos, alice, escrow } = await loadBaseTestFixture()
+              const offer = await generateOfferWithoutToken(
+                marvos,
+                alice,
+                escrow,
+                {},
+                {
+                  hasExternalItem: false,
+                },
               )
               await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
@@ -177,61 +114,31 @@ describe('Marvos', () => {
             })
 
             it('should revert if available amount is not total amount', async () => {
-              const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
-              const offer = prefills.offerPrefill()
-
-              offer.id = 1
-              offer.creator = alice.address
-              offer.status = 1
-              offer.totalAmount = 0
-              offer.availableAmount = 10
-              offer.item.itemData = '0xabcd'
-              offer.item.hasExternalItem = true
-              offer.item.disputeHandler = escrow.address
-              offer.item.disputeHandlerFeeReceiver = escrow.address
-              offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await marvos.generateHashForOffer(offer)),
-              )
+              const { marvos, alice, escrow } = await loadBaseTestFixture()
+              const offer = await generateOfferWithoutToken(marvos, alice, escrow, {
+                availableAmount: 5,
+                totalAmount: 6,
+              })
               await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
                 .withArgs(StandardError.AmountInvalid)
             })
 
             it('should revert if max amount is not zero', async () => {
-              const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
-              const offer = prefills.offerPrefill()
-
-              offer.id = 1
-              offer.creator = alice.address
-              offer.status = 1
-              offer.maxAmount = 10
-              offer.item.itemData = '0xabcd'
-              offer.item.hasExternalItem = true
-              offer.item.disputeHandler = escrow.address
-              offer.item.disputeHandlerFeeReceiver = escrow.address
-              offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await marvos.generateHashForOffer(offer)),
-              )
+              const { marvos, alice, escrow } = await loadBaseTestFixture()
+              const offer = await generateOfferWithoutToken(marvos, alice, escrow, {
+                maxAmount: 10,
+              })
               await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
                 .withArgs(StandardError.AmountInvalid)
             })
 
             it('should revert if min amount is not zero', async () => {
-              const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
-              const offer = prefills.offerPrefill()
-
-              offer.id = 1
-              offer.creator = alice.address
-              offer.status = 1
-              offer.minAmount = 10
-              offer.item.itemData = '0xabcd'
-              offer.item.hasExternalItem = true
-              offer.item.disputeHandler = escrow.address
-              offer.item.disputeHandlerFeeReceiver = escrow.address
-              offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await marvos.generateHashForOffer(offer)),
-              )
+              const { marvos, alice, escrow } = await loadBaseTestFixture()
+              const offer = await generateOfferWithoutToken(marvos, alice, escrow, {
+                minAmount: 10,
+              })
               await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
                 .withArgs(StandardError.AmountInvalid)
@@ -240,20 +147,16 @@ describe('Marvos', () => {
 
           describe('when token is set', () => {
             it('should revert if total amount is zero', async () => {
-              const { marvos, alice, escrow, prefills, sampleToken } =
+              const { marvos, alice, escrow, sampleToken } =
                 await loadTestWithTokenFixture()
-              const offer = prefills.offerPrefill()
-
-              offer.id = 1
-              offer.creator = alice.address
-              offer.status = 1
-              offer.token = sampleToken.address
-              offer.totalAmount = 0
-              offer.item.itemData = '0xabcd'
-              offer.item.disputeHandler = escrow.address
-              offer.item.disputeHandlerFeeReceiver = escrow.address
-              offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await marvos.generateHashForOffer(offer)),
+              const offer = await generateOfferWithToken(
+                marvos,
+                alice,
+                escrow,
+                sampleToken.address,
+                {
+                  totalAmount: 0,
+                },
               )
               await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
@@ -261,22 +164,16 @@ describe('Marvos', () => {
             })
 
             it('should revert if min amount is zero', async () => {
-              const { marvos, alice, escrow, prefills, sampleToken } =
+              const { marvos, alice, escrow, sampleToken } =
                 await loadTestWithTokenFixture()
-              const offer = prefills.offerPrefill()
-
-              offer.id = 1
-              offer.creator = alice.address
-              offer.status = 1
-              offer.token = sampleToken.address
-              offer.totalAmount = 10
-              offer.minAmount = 0
-              offer.maxAmount = 10
-              offer.item.itemData = '0xabcd'
-              offer.item.disputeHandler = escrow.address
-              offer.item.disputeHandlerFeeReceiver = escrow.address
-              offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await marvos.generateHashForOffer(offer)),
+              const offer = await generateOfferWithToken(
+                marvos,
+                alice,
+                escrow,
+                sampleToken.address,
+                {
+                  minAmount: 0,
+                },
               )
               await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
@@ -284,21 +181,17 @@ describe('Marvos', () => {
             })
 
             it('should revert if available amount is not total amount', async () => {
-              const { marvos, alice, escrow, prefills, sampleToken } =
+              const { marvos, alice, escrow, sampleToken } =
                 await loadTestWithTokenFixture()
-              const offer = prefills.offerPrefill()
-
-              offer.id = 1
-              offer.creator = alice.address
-              offer.status = 1
-              offer.token = sampleToken.address
-              offer.totalAmount = 5
-              offer.availableAmount = 10
-              offer.item.itemData = '0xabcd'
-              offer.item.disputeHandler = escrow.address
-              offer.item.disputeHandlerFeeReceiver = escrow.address
-              offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await marvos.generateHashForOffer(offer)),
+              const offer = await generateOfferWithToken(
+                marvos,
+                alice,
+                escrow,
+                sampleToken.address,
+                {
+                  availableAmount: 5,
+                  totalAmount: 6,
+                },
               )
               await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
@@ -306,23 +199,17 @@ describe('Marvos', () => {
             })
 
             it('should revert if max amount less than min amount', async () => {
-              const { marvos, alice, escrow, prefills, sampleToken } =
+              const { marvos, alice, escrow, sampleToken } =
                 await loadTestWithTokenFixture()
-              const offer = prefills.offerPrefill()
-
-              offer.id = 1
-              offer.creator = alice.address
-              offer.status = 1
-              offer.token = sampleToken.address
-              offer.totalAmount = 10
-              offer.availableAmount = 10
-              offer.minAmount = 2
-              offer.maxAmount = 1
-              offer.item.itemData = '0xabcd'
-              offer.item.disputeHandler = escrow.address
-              offer.item.disputeHandlerFeeReceiver = escrow.address
-              offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await marvos.generateHashForOffer(offer)),
+              const offer = await generateOfferWithToken(
+                marvos,
+                alice,
+                escrow,
+                sampleToken.address,
+                {
+                  maxAmount: 4,
+                  minAmount: 5,
+                },
               )
               await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
@@ -330,23 +217,17 @@ describe('Marvos', () => {
             })
 
             it('should revert if max amount is greater than total amount', async () => {
-              const { marvos, alice, escrow, prefills, sampleToken } =
+              const { marvos, alice, escrow, sampleToken } =
                 await loadTestWithTokenFixture()
-              const offer = prefills.offerPrefill()
-
-              offer.id = 1
-              offer.creator = alice.address
-              offer.status = 1
-              offer.token = sampleToken.address
-              offer.totalAmount = 10
-              offer.availableAmount = 10
-              offer.minAmount = 1
-              offer.maxAmount = 20
-              offer.item.itemData = '0xabcd'
-              offer.item.disputeHandler = escrow.address
-              offer.item.disputeHandlerFeeReceiver = escrow.address
-              offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await marvos.generateHashForOffer(offer)),
+              const offer = await generateOfferWithToken(
+                marvos,
+                alice,
+                escrow,
+                sampleToken.address,
+                {
+                  totalAmount: 10,
+                  maxAmount: 15,
+                },
               )
               await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
@@ -354,23 +235,12 @@ describe('Marvos', () => {
             })
 
             it('should revert if token is eth and exact value is not transferred', async () => {
-              const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
-              const offer = prefills.offerPrefill()
-              const token = await marvos.COIN_ADDRESS()
-
-              offer.id = 1
-              offer.creator = alice.address
-              offer.status = 1
-              offer.token = token
-              offer.totalAmount = 10
-              offer.availableAmount = 10
-              offer.minAmount = 1
-              offer.maxAmount = 5
-              offer.item.itemData = '0xabcd'
-              offer.item.disputeHandler = escrow.address
-              offer.item.disputeHandlerFeeReceiver = escrow.address
-              offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await marvos.generateHashForOffer(offer)),
+              const { marvos, alice, escrow } = await loadBaseTestFixture()
+              const offer = await generateOfferWithToken(
+                marvos,
+                alice,
+                escrow,
+                await marvos.COIN_ADDRESS(),
               )
               await expect(marvos.connect(alice).createOffer(offer, false))
                 .to.be.revertedWith('StandardError')
@@ -378,22 +248,12 @@ describe('Marvos', () => {
             })
 
             it('should revert if token is not a contract', async () => {
-              const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
-              const offer = prefills.offerPrefill()
-
-              offer.id = 1
-              offer.creator = alice.address
-              offer.status = 1
-              offer.token = randomAddressString()
-              offer.totalAmount = 10
-              offer.availableAmount = 10
-              offer.minAmount = 1
-              offer.maxAmount = 5
-              offer.item.itemData = '0xabcd'
-              offer.item.disputeHandler = escrow.address
-              offer.item.disputeHandlerFeeReceiver = escrow.address
-              offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await marvos.generateHashForOffer(offer)),
+              const { marvos, alice, bob, escrow } = await loadBaseTestFixture()
+              const offer = await generateOfferWithToken(
+                marvos,
+                alice,
+                escrow,
+                bob.address,
               )
               await expect(
                 marvos.connect(alice).createOffer(offer, false),
@@ -401,23 +261,13 @@ describe('Marvos', () => {
             })
 
             it('should revert if token is erc20 but token not approved', async () => {
-              const { marvos, alice, escrow, prefills, sampleToken } =
+              const { marvos, alice, escrow, sampleToken } =
                 await loadTestWithTokenFixture()
-              const offer = prefills.offerPrefill()
-
-              offer.id = 1
-              offer.creator = alice.address
-              offer.status = 1
-              offer.token = sampleToken.address
-              offer.totalAmount = 10
-              offer.availableAmount = 10
-              offer.minAmount = 1
-              offer.maxAmount = 5
-              offer.item.itemData = '0xabcd'
-              offer.item.disputeHandler = escrow.address
-              offer.item.disputeHandlerFeeReceiver = escrow.address
-              offer.item.disputeHandlerProof = await escrow.signMessage(
-                arrayify(await marvos.generateHashForOffer(offer)),
+              const offer = await generateOfferWithToken(
+                marvos,
+                alice,
+                escrow,
+                sampleToken.address,
               )
               await expect(
                 marvos.connect(alice).createOffer(offer, false),
@@ -428,18 +278,15 @@ describe('Marvos', () => {
 
         describe('item validations', () => {
           it('should revert if item data is not set', async () => {
-            const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
-            const offer = prefills.offerPrefill()
-
-            offer.id = 1
-            offer.creator = alice.address
-            offer.status = 1
-            offer.item.itemData = '0x'
-            offer.item.hasExternalItem = true
-            offer.item.disputeHandler = escrow.address
-            offer.item.disputeHandlerFeeReceiver = escrow.address
-            offer.item.disputeHandlerProof = await escrow.signMessage(
-              arrayify(await marvos.generateHashForOffer(offer)),
+            const { marvos, alice, escrow } = await loadBaseTestFixture()
+            const offer = await generateOfferWithoutToken(
+              marvos,
+              alice,
+              escrow,
+              {},
+              {
+                itemData: '0x',
+              },
             )
             await expect(marvos.connect(alice).createOffer(offer, false))
               .to.be.revertedWith('StandardError')
@@ -447,17 +294,15 @@ describe('Marvos', () => {
           })
 
           it('should revert if dispute handler address is not set', async () => {
-            const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
-            const offer = prefills.offerPrefill()
-
-            offer.id = 1
-            offer.creator = alice.address
-            offer.status = 1
-            offer.item.itemData = '0xabcd'
-            offer.item.hasExternalItem = true
-            offer.item.disputeHandlerFeeReceiver = escrow.address
-            offer.item.disputeHandlerProof = await escrow.signMessage(
-              arrayify(await marvos.generateHashForOffer(offer)),
+            const { marvos, alice, escrow } = await loadBaseTestFixture()
+            const offer = await generateOfferWithoutToken(
+              marvos,
+              alice,
+              escrow,
+              {},
+              {
+                disputeHandler: constants.AddressZero,
+              },
             )
             await expect(marvos.connect(alice).createOffer(offer, false))
               .to.be.revertedWith('StandardError')
@@ -465,17 +310,15 @@ describe('Marvos', () => {
           })
 
           it('should revert if dispute handler fee receiver address is not set', async () => {
-            const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
-            const offer = prefills.offerPrefill()
-
-            offer.id = 1
-            offer.creator = alice.address
-            offer.status = 1
-            offer.item.itemData = '0xabcd'
-            offer.item.hasExternalItem = true
-            offer.item.disputeHandler = escrow.address
-            offer.item.disputeHandlerProof = await escrow.signMessage(
-              arrayify(await marvos.generateHashForOffer(offer)),
+            const { marvos, alice, escrow } = await loadBaseTestFixture()
+            const offer = await generateOfferWithoutToken(
+              marvos,
+              alice,
+              escrow,
+              {},
+              {
+                disputeHandlerFeeReceiver: constants.AddressZero,
+              },
             )
             await expect(marvos.connect(alice).createOffer(offer, false))
               .to.be.revertedWith('StandardError')
@@ -483,20 +326,16 @@ describe('Marvos', () => {
           })
 
           it('should revert if dispute handler fee is too high', async () => {
-            const { marvos, alice, escrow, maxEscrowFeePercentage, prefills } =
-              await loadBaseTestFixture()
-            const offer = prefills.offerPrefill()
-
-            offer.id = 1
-            offer.creator = alice.address
-            offer.status = 1
-            offer.item.itemData = '0xabcd'
-            offer.item.hasExternalItem = true
-            offer.item.disputeHandler = escrow.address
-            offer.item.disputeHandlerFeeReceiver = escrow.address
-            offer.item.disputeHandlerFeePercentage = maxEscrowFeePercentage + 1
-            offer.item.disputeHandlerProof = await escrow.signMessage(
-              arrayify(await marvos.generateHashForOffer(offer)),
+            const { marvos, alice, escrow } = await loadBaseTestFixture()
+            const offer = await generateOfferWithoutToken(
+              marvos,
+              alice,
+              escrow,
+              {},
+              {
+                disputeHandlerFeePercentage:
+                  (await marvos.maxDisputeHandlerFeePercentage()) + 1,
+              },
             )
             await expect(marvos.connect(alice).createOffer(offer, false))
               .to.be.revertedWith('StandardError')
@@ -504,20 +343,18 @@ describe('Marvos', () => {
           })
 
           it('should revert if a fake signature is appended to offer', async () => {
-            const { marvos, alice, escrow, prefills } = await loadBaseTestFixture()
-            const offer = prefills.offerPrefill()
-
-            offer.id = 1
-            offer.creator = alice.address
-            offer.status = 1
-            offer.item.itemData = '0xabcd'
-            offer.item.hasExternalItem = true
-            offer.item.disputeHandler = escrow.address
-            offer.item.disputeHandlerFeeReceiver = escrow.address
-            offer.item.disputeHandlerProof = await alice.signMessage(
-              arrayify(await marvos.generateHashForOffer(offer)),
-            )
-            await expect(marvos.connect(alice).createOffer(offer, false))
+            const { marvos, alice, bob, escrow } = await loadBaseTestFixture()
+            const validOffer = await generateOfferWithoutToken(marvos, alice, escrow)
+            const invalidOffer = {
+              ...validOffer,
+              item: {
+                ...validOffer.item,
+                disputeHandlerProof: bob.signMessage(
+                  arrayify(await marvos.generateHashForOffer(validOffer)),
+                ),
+              },
+            }
+            await expect(marvos.connect(alice).createOffer(invalidOffer, false))
               .to.be.revertedWith('StandardError')
               .withArgs(StandardError.SignatureInvalid)
           })
@@ -527,7 +364,8 @@ describe('Marvos', () => {
       describe('effects', () => {
         describe('when the offer does not include a token', () => {
           it('should create an offer without a token', async () => {
-            const { marvos, alice, offer } = await loadOfferWithoutTokenFixture()
+            const { marvos, alice, escrow } = await loadBaseTestFixture()
+            const offer = await generateOfferWithoutToken(marvos, alice, escrow)
             await expect(marvos.connect(alice).createOffer(offer, false))
               .to.emit(marvos, 'OfferCreated')
               .withArgs(offer.id, offer.token, alice.address)
@@ -536,40 +374,43 @@ describe('Marvos', () => {
 
         describe('when the offer includes a token', () => {
           it('should create an offer with the token and transfer token to the contract', async () => {
-            const { marvos, admin, alice, offer, sampleToken } =
-              await loadOfferWithTokenFixture()
-            const amount = parseEther('10')
-            await sampleToken.connect(admin).transfer(alice.address, amount)
-            await sampleToken.connect(alice).approve(marvos.address, amount)
+            const { marvos, admin, alice, escrow, sampleToken } =
+              await loadTestWithTokenFixture()
+
+            const offer = await generateOfferWithToken(
+              marvos,
+              alice,
+              escrow,
+              sampleToken.address,
+            )
+            await sampleToken.connect(admin).transfer(alice.address, offer.maxAmount)
+            await sampleToken.connect(alice).approve(marvos.address, offer.maxAmount)
             await expect(marvos.connect(alice).createOffer(offer, false))
               .changeTokenBalances(
                 sampleToken.address,
                 [marvos.address, alice.address],
-                [amount, 0],
+                [offer.maxAmount, 0],
               )
               .to.emit(marvos, 'OfferCreated')
               .withArgs(offer.id, offer.token, alice.address)
           })
 
           it('should create an offer if the correct amount of ETH is transferred to the contract', async () => {
-            const {
+            const { marvos, alice, escrow } = await loadTestWithTokenFixture()
+
+            const offer = await generateOfferWithToken(
               marvos,
               alice,
               escrow,
-              offer: tokenOffer,
-            } = await loadOfferWithTokenFixture()
+              await marvos.COIN_ADDRESS(),
+            )
 
-            const offer = await regenerateOffer(marvos, escrow, tokenOffer, {
-              token: await marvos.COIN_ADDRESS(),
-            })
-
-            const amount = parseEther('10')
             await expect(
               marvos.connect(alice).createOffer(offer, false, {
-                value: amount,
+                value: offer.maxAmount,
               }),
             )
-              .changeEtherBalances([marvos.address, alice.address], [amount, 0])
+              .changeEtherBalances([marvos.address, alice.address], [offer.maxAmount, 0])
               .to.emit(marvos, 'OfferCreated')
               .withArgs(offer.id, offer.token, alice.address)
           })
