@@ -1,9 +1,10 @@
 ﻿/* eslint-disable @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/restrict-plus-operands */
 import { expect } from 'chai'
-import { constants } from 'ethers'
+import { BigNumber, constants } from 'ethers'
 import { arrayify } from 'ethers/lib/utils'
 import '../../hardhat.config'
 import {
+  generateBidWithoutToken,
   generateOfferWithoutToken,
   generateOfferWithToken,
   loadBaseTestFixture,
@@ -383,16 +384,54 @@ describe('Marvos', () => {
               escrow,
               sampleToken.address,
             )
-            await sampleToken.connect(admin).transfer(alice.address, offer.maxAmount)
-            await sampleToken.connect(alice).approve(marvos.address, offer.maxAmount)
+            await sampleToken.connect(admin).transfer(alice.address, offer.totalAmount)
+            await sampleToken.connect(alice).approve(marvos.address, offer.totalAmount)
             await expect(marvos.connect(alice).createOffer(offer, false))
               .changeTokenBalances(
                 sampleToken.address,
                 [marvos.address, alice.address],
-                [offer.maxAmount, 0],
+                [offer.totalAmount, 0],
               )
               .to.emit(marvos, 'OfferCreated')
               .withArgs(offer.id, offer.token, alice.address)
+          })
+
+          it('should use balance when the account has balance and useBalance is true', async () => {
+            const { marvos, admin, alice, escrow, sampleToken } =
+              await loadTestWithTokenFixture()
+
+            const offer = await generateOfferWithToken(
+              marvos,
+              alice,
+              escrow,
+              sampleToken.address,
+            )
+            await sampleToken.connect(admin).transfer(alice.address, offer.totalAmount)
+            await sampleToken.connect(alice).approve(marvos.address, offer.totalAmount)
+            await marvos.connect(alice).createOffer(offer, false)
+
+            // cancel and get everything back in balance
+            await marvos.connect(alice).updateOfferStatus(offer.id, 3)
+
+            // no more allowance
+            expect(await sampleToken.allowance(alice.address, marvos.address)).to.eq(0)
+
+            const newOffer = await generateOfferWithToken(
+              marvos,
+              alice,
+              escrow,
+              sampleToken.address,
+              {
+                totalAmount: offer.totalAmount,
+                availableAmount: offer.availableAmount,
+                maxAmount: offer.maxAmount,
+                minAmount: offer.minAmount,
+              },
+            )
+            // but since the user has balance - we can use it
+            await expect(marvos.connect(alice).createOffer(newOffer, true))
+              .to.emit(marvos, 'OfferCreated')
+              .withArgs(newOffer.id, newOffer.token, alice.address)
           })
 
           it('should create an offer if the correct amount of ETH is transferred to the contract', async () => {
@@ -407,10 +446,13 @@ describe('Marvos', () => {
 
             await expect(
               marvos.connect(alice).createOffer(offer, false, {
-                value: offer.maxAmount,
+                value: offer.totalAmount,
               }),
             )
-              .changeEtherBalances([marvos.address, alice.address], [offer.maxAmount, 0])
+              .changeEtherBalances(
+                [marvos.address, alice.address],
+                [offer.totalAmount, 0],
+              )
               .to.emit(marvos, 'OfferCreated')
               .withArgs(offer.id, offer.token, alice.address)
           })
@@ -419,13 +461,161 @@ describe('Marvos', () => {
     })
 
     describe('updateOfferStatus', () => {
-      describe('pause', () => {
-        describe('validations', () => {})
-        describe('effects', () => {})
+      describe('validations', () => {
+        it('should revert when the new status is Unset', async () => {
+          const { marvos, alice, escrow } = await loadBaseTestFixture()
+          const offer = await generateOfferWithoutToken(marvos, alice, escrow)
+          await marvos.connect(alice).createOffer(offer, true)
+
+          await expect(marvos.connect(alice).updateOfferStatus(offer.id, 0))
+            .to.be.revertedWith('StandardError')
+            .withArgs(StandardError.OfferStatusInvalid)
+        })
+
+        it('should revert if the caller is different from the offer creator', async () => {
+          const { marvos, alice, bob, escrow } = await loadBaseTestFixture()
+          const offer = await generateOfferWithoutToken(marvos, alice, escrow)
+          await marvos.connect(alice).createOffer(offer, true)
+
+          await expect(marvos.connect(bob).updateOfferStatus(offer.id, 2))
+            .to.be.revertedWith('StandardError')
+            .withArgs(StandardError.Unauthorized)
+        })
+
+        it('should revert if the offer has already been canceled', async () => {
+          const { marvos, alice, escrow } = await loadBaseTestFixture()
+          const offer = await generateOfferWithoutToken(marvos, alice, escrow)
+          await marvos.connect(alice).createOffer(offer, true)
+          await marvos.connect(alice).updateOfferStatus(offer.id, 3)
+          await expect(marvos.connect(alice).updateOfferStatus(offer.id, 2))
+            .to.be.revertedWith('StandardError')
+            .withArgs(StandardError.OfferInactive)
+        })
       })
+
+      describe('pause', () => {
+        describe('effects', () => {
+          it('should update the offer status and set it to paused', async () => {
+            const { marvos, alice, escrow } = await loadBaseTestFixture()
+            const offer = await generateOfferWithoutToken(marvos, alice, escrow)
+            await marvos.connect(alice).createOffer(offer, true)
+
+            const status = 2
+            await expect(marvos.connect(alice).updateOfferStatus(offer.id, status))
+              .to.emit(marvos, 'OfferStatusChanged')
+              .withArgs(offer.id, status)
+            const offerOnChain = await marvos.offers(offer.id)
+            expect(offerOnChain.status).to.eq(status)
+          })
+        })
+      })
+
       describe('cancel', () => {
-        describe('when the offer has no token', () => {})
-        describe('when the offer has a token', () => {})
+        describe('when the offer has no token', () => {
+          it('should update the offer status and set it to canceled', async () => {
+            const { marvos, alice, escrow } = await loadBaseTestFixture()
+            const offer = await generateOfferWithoutToken(marvos, alice, escrow)
+            await marvos.connect(alice).createOffer(offer, true)
+
+            const status = 3
+            await expect(marvos.connect(alice).updateOfferStatus(offer.id, status))
+              .to.emit(marvos, 'OfferStatusChanged')
+              .withArgs(offer.id, status)
+            const offerOnChain = await marvos.offers(offer.id)
+            expect(offerOnChain.status).to.eq(status)
+          })
+        })
+
+        describe('when the offer has a token', () => {
+          it('should refund the total amount to the user if the no order has been created on the offer', async () => {
+            const { marvos, admin, alice, escrow, sampleToken } =
+              await loadTestWithTokenFixture()
+            const offer = await generateOfferWithToken(
+              marvos,
+              alice,
+              escrow,
+              sampleToken.address,
+            )
+
+            await sampleToken.connect(admin).transfer(alice.address, offer.totalAmount)
+            await sampleToken.connect(alice).approve(marvos.address, offer.totalAmount)
+            await marvos.connect(alice).createOffer(offer, true)
+
+            const status = 3
+            await expect(marvos.connect(alice).updateOfferStatus(offer.id, status))
+              .to.emit(marvos, 'OfferStatusChanged')
+              .withArgs(offer.id, status)
+              .to.emit(marvos, 'BalanceCredited')
+              .withArgs(
+                alice.address,
+                sampleToken.address,
+                2,
+                offer.totalAmount,
+                offer.totalAmount,
+              )
+
+            const offerOnChain = await marvos.offers(offer.id)
+            expect(offerOnChain.status).to.eq(status)
+
+            const balanceOnChain = await marvos.tokenBalances(
+              alice.address,
+              sampleToken.address,
+            )
+            expect(balanceOnChain).to.eq(offer.totalAmount)
+          })
+
+          it('should refund only the available amount amount to the user if the an order has been created on the offer', async () => {
+            const { marvos, admin, alice, bob, escrow, sampleToken } =
+              await loadTestWithTokenFixture()
+            const offer = await generateOfferWithToken(
+              marvos,
+              alice,
+              escrow,
+              sampleToken.address,
+              {
+                totalAmount: 10,
+                availableAmount: 10,
+                maxAmount: 10,
+                minAmount: 5,
+              },
+            )
+            const bid = await generateBidWithoutToken(marvos, bob, escrow, offer, {
+              offerTokenAmount: 6,
+            })
+
+            const expectedAvailableAmount = BigNumber.from(offer.totalAmount).sub(
+              BigNumber.from(bid.offerTokenAmount),
+            )
+
+            await sampleToken.connect(admin).transfer(alice.address, offer.totalAmount)
+            await sampleToken.connect(alice).approve(marvos.address, offer.totalAmount)
+            await marvos.connect(alice).createOffer(offer, true)
+            await marvos.connect(bob).placeBid(bid, true)
+            await marvos.connect(alice).acceptBid(bid.id) // order is created on acceptance
+
+            const status = 3
+            await expect(marvos.connect(alice).updateOfferStatus(offer.id, status))
+              .to.emit(marvos, 'OfferStatusChanged')
+              .withArgs(offer.id, status)
+              .to.emit(marvos, 'BalanceCredited')
+              .withArgs(
+                alice.address,
+                sampleToken.address,
+                2,
+                expectedAvailableAmount,
+                expectedAvailableAmount,
+              )
+
+            const offerOnChain = await marvos.offers(offer.id)
+            expect(offerOnChain.status).to.eq(status)
+
+            const balanceOnChain = await marvos.tokenBalances(
+              alice.address,
+              sampleToken.address,
+            )
+            expect(balanceOnChain).to.eq(expectedAvailableAmount)
+          })
+        })
       })
     })
   })
