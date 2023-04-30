@@ -36,6 +36,7 @@ contract Marvos is MarvosBase {
         ensure(offer.status == OfferStatus.Active, ErrorReason.OfferInactive);
 
         // lock the amount for the order
+        ensure(offer.availableAmount >= bid.offerTokenAmount, ErrorReason.AmountInvalid);
         offer.availableAmount -= bid.offerTokenAmount;
         bid.status = BidStatus.Accepted;
         emit BidStatusChanged(bidId, BidStatus.Accepted);
@@ -94,7 +95,7 @@ contract Marvos is MarvosBase {
         Bid storage bid = bids[bidId];
         ensureSenderAddress(bid.creator);
 
-        ensure(bid.status == BidStatus.Active, ErrorReason.BidAccepted);
+        ensure(bid.status == BidStatus.Active, ErrorReason.BidStatusInvalid);
 
         bid.status = BidStatus.Canceled;
         emit BidStatusChanged(bidId, BidStatus.Canceled);
