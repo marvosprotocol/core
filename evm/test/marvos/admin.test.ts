@@ -76,12 +76,10 @@ describe('Marvos', () => {
 
       describe('effects', () => {
         it('should update a token blacklist status', async () => {
-          const { marvos, admin, sampleToken } = await loadTestWithTokenFixture()
-          await expect(
-            marvos.connect(admin).setTokenBlacklisted(sampleToken.address, true),
-          )
+          const { marvos, admin, tokenA } = await loadTestWithTokenFixture()
+          await expect(marvos.connect(admin).setTokenBlacklisted(tokenA.address, true))
             .to.emit(marvos, 'TokenBlacklistStatusUpdated')
-            .withArgs(sampleToken.address, admin.address, true)
+            .withArgs(tokenA.address, admin.address, true)
         })
       })
     })

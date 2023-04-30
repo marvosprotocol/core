@@ -24,7 +24,7 @@ async function baseTestFixture() {
   const maxEscrowFeePercentage = 2000
 
   const signers = await getSigners()
-  const [admin, alice, bob, escrow] = signers
+  const [admin, alice, bob, mark, escrow] = signers
 
   const marvosFactory = (await getContractFactory('Marvos', admin)) as Marvos__factory
   let marvos = (await upgrades.deployProxy(
@@ -41,29 +41,37 @@ async function baseTestFixture() {
     admin,
     alice,
     bob,
+    mark,
     escrow,
     marvos,
   }
 }
 async function testWithTokenFixture() {
-  const { admin, alice, bob, escrow, marvos } = await loadFixture(baseTestFixture)
+  const { admin, alice, bob, mark, escrow, marvos } = await loadFixture(baseTestFixture)
 
   const tokenFactory = (await getContractFactory(
     'SampleToken',
     admin,
   )) as SampleToken__factory
-  let sampleToken = (await upgrades.deployProxy(tokenFactory, [parseEther('100')], {
+  let tokenA = (await upgrades.deployProxy(tokenFactory, [parseEther('100')], {
     initializer: 'initialize',
   })) as SampleToken
-  await sampleToken.deployed()
-  sampleToken = sampleToken.connect(alice)
+  await tokenA.deployed()
+  tokenA = tokenA.connect(alice)
+  let tokenB = (await upgrades.deployProxy(tokenFactory, [parseEther('100')], {
+    initializer: 'initialize',
+  })) as SampleToken
+  await tokenB.deployed()
+  tokenB = tokenB.connect(alice)
 
   return {
     admin,
     alice,
     bob,
+    mark,
     escrow,
     marvos,
-    sampleToken,
+    tokenA,
+    tokenB,
   }
 }

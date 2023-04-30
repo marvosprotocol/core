@@ -50,16 +50,16 @@ describe('Marvos', () => {
         })
 
         it('should revert if offer includes a blacklisted token', async () => {
-          const { marvos, alice, admin, escrow, sampleToken } =
+          const { marvos, alice, admin, escrow, tokenA } =
             await loadTestWithTokenFixture()
           const offer = await generateOfferWithToken(
             marvos,
             alice,
             escrow,
-            sampleToken.address,
+            tokenA.address,
           )
 
-          await marvos.connect(admin).setTokenBlacklisted(sampleToken.address, true)
+          await marvos.connect(admin).setTokenBlacklisted(tokenA.address, true)
           await expect(marvos.connect(alice).createOffer(offer, false))
             .to.be.revertedWith('StandardError')
             .withArgs(StandardError.TokenBlacklisted)
@@ -148,13 +148,12 @@ describe('Marvos', () => {
 
           describe('when token is set', () => {
             it('should revert if total amount is zero', async () => {
-              const { marvos, alice, escrow, sampleToken } =
-                await loadTestWithTokenFixture()
+              const { marvos, alice, escrow, tokenA } = await loadTestWithTokenFixture()
               const offer = await generateOfferWithToken(
                 marvos,
                 alice,
                 escrow,
-                sampleToken.address,
+                tokenA.address,
                 {
                   totalAmount: 0,
                 },
@@ -165,13 +164,12 @@ describe('Marvos', () => {
             })
 
             it('should revert if min amount is zero', async () => {
-              const { marvos, alice, escrow, sampleToken } =
-                await loadTestWithTokenFixture()
+              const { marvos, alice, escrow, tokenA } = await loadTestWithTokenFixture()
               const offer = await generateOfferWithToken(
                 marvos,
                 alice,
                 escrow,
-                sampleToken.address,
+                tokenA.address,
                 {
                   minAmount: 0,
                 },
@@ -182,13 +180,12 @@ describe('Marvos', () => {
             })
 
             it('should revert if available amount is not total amount', async () => {
-              const { marvos, alice, escrow, sampleToken } =
-                await loadTestWithTokenFixture()
+              const { marvos, alice, escrow, tokenA } = await loadTestWithTokenFixture()
               const offer = await generateOfferWithToken(
                 marvos,
                 alice,
                 escrow,
-                sampleToken.address,
+                tokenA.address,
                 {
                   availableAmount: 5,
                   totalAmount: 6,
@@ -200,13 +197,12 @@ describe('Marvos', () => {
             })
 
             it('should revert if max amount less than min amount', async () => {
-              const { marvos, alice, escrow, sampleToken } =
-                await loadTestWithTokenFixture()
+              const { marvos, alice, escrow, tokenA } = await loadTestWithTokenFixture()
               const offer = await generateOfferWithToken(
                 marvos,
                 alice,
                 escrow,
-                sampleToken.address,
+                tokenA.address,
                 {
                   maxAmount: 4,
                   minAmount: 5,
@@ -218,13 +214,12 @@ describe('Marvos', () => {
             })
 
             it('should revert if max amount is greater than total amount', async () => {
-              const { marvos, alice, escrow, sampleToken } =
-                await loadTestWithTokenFixture()
+              const { marvos, alice, escrow, tokenA } = await loadTestWithTokenFixture()
               const offer = await generateOfferWithToken(
                 marvos,
                 alice,
                 escrow,
-                sampleToken.address,
+                tokenA.address,
                 {
                   totalAmount: 10,
                   maxAmount: 15,
@@ -262,13 +257,12 @@ describe('Marvos', () => {
             })
 
             it('should revert if token is erc20 but token not approved', async () => {
-              const { marvos, alice, escrow, sampleToken } =
-                await loadTestWithTokenFixture()
+              const { marvos, alice, escrow, tokenA } = await loadTestWithTokenFixture()
               const offer = await generateOfferWithToken(
                 marvos,
                 alice,
                 escrow,
-                sampleToken.address,
+                tokenA.address,
               )
               await expect(
                 marvos.connect(alice).createOffer(offer, false),
@@ -375,20 +369,20 @@ describe('Marvos', () => {
 
         describe('when the offer includes a token', () => {
           it('should create an offer with the token and transfer token to the contract', async () => {
-            const { marvos, admin, alice, escrow, sampleToken } =
+            const { marvos, admin, alice, escrow, tokenA } =
               await loadTestWithTokenFixture()
 
             const offer = await generateOfferWithToken(
               marvos,
               alice,
               escrow,
-              sampleToken.address,
+              tokenA.address,
             )
-            await sampleToken.connect(admin).transfer(alice.address, offer.totalAmount)
-            await sampleToken.connect(alice).approve(marvos.address, offer.totalAmount)
+            await tokenA.connect(admin).transfer(alice.address, offer.totalAmount)
+            await tokenA.connect(alice).approve(marvos.address, offer.totalAmount)
             await expect(marvos.connect(alice).createOffer(offer, false))
               .changeTokenBalances(
-                sampleToken.address,
+                tokenA.address,
                 [marvos.address, alice.address],
                 [offer.totalAmount, 0],
               )
@@ -397,30 +391,30 @@ describe('Marvos', () => {
           })
 
           it('should use balance when the account has balance and useBalance is true', async () => {
-            const { marvos, admin, alice, escrow, sampleToken } =
+            const { marvos, admin, alice, escrow, tokenA } =
               await loadTestWithTokenFixture()
 
             const offer = await generateOfferWithToken(
               marvos,
               alice,
               escrow,
-              sampleToken.address,
+              tokenA.address,
             )
-            await sampleToken.connect(admin).transfer(alice.address, offer.totalAmount)
-            await sampleToken.connect(alice).approve(marvos.address, offer.totalAmount)
+            await tokenA.connect(admin).transfer(alice.address, offer.totalAmount)
+            await tokenA.connect(alice).approve(marvos.address, offer.totalAmount)
             await marvos.connect(alice).createOffer(offer, false)
 
             // cancel and get everything back in balance
             await marvos.connect(alice).updateOfferStatus(offer.id, 3)
 
             // no more allowance
-            expect(await sampleToken.allowance(alice.address, marvos.address)).to.eq(0)
+            expect(await tokenA.allowance(alice.address, marvos.address)).to.eq(0)
 
             const newOffer = await generateOfferWithToken(
               marvos,
               alice,
               escrow,
-              sampleToken.address,
+              tokenA.address,
               {
                 totalAmount: offer.totalAmount,
                 availableAmount: offer.availableAmount,
@@ -528,17 +522,17 @@ describe('Marvos', () => {
 
         describe('when the offer has a token', () => {
           it('should refund the total amount to the user if the no order has been created on the offer', async () => {
-            const { marvos, admin, alice, escrow, sampleToken } =
+            const { marvos, admin, alice, escrow, tokenA } =
               await loadTestWithTokenFixture()
             const offer = await generateOfferWithToken(
               marvos,
               alice,
               escrow,
-              sampleToken.address,
+              tokenA.address,
             )
 
-            await sampleToken.connect(admin).transfer(alice.address, offer.totalAmount)
-            await sampleToken.connect(alice).approve(marvos.address, offer.totalAmount)
+            await tokenA.connect(admin).transfer(alice.address, offer.totalAmount)
+            await tokenA.connect(alice).approve(marvos.address, offer.totalAmount)
             await marvos.connect(alice).createOffer(offer, true)
 
             const status = 3
@@ -548,7 +542,7 @@ describe('Marvos', () => {
               .to.emit(marvos, 'BalanceCredited')
               .withArgs(
                 alice.address,
-                sampleToken.address,
+                tokenA.address,
                 2,
                 offer.totalAmount,
                 offer.totalAmount,
@@ -559,19 +553,19 @@ describe('Marvos', () => {
 
             const balanceOnChain = await marvos.tokenBalances(
               alice.address,
-              sampleToken.address,
+              tokenA.address,
             )
             expect(balanceOnChain).to.eq(offer.totalAmount)
           })
 
           it('should refund only the available amount amount to the user if the an order has been created on the offer', async () => {
-            const { marvos, admin, alice, bob, escrow, sampleToken } =
+            const { marvos, admin, alice, bob, escrow, tokenA } =
               await loadTestWithTokenFixture()
             const offer = await generateOfferWithToken(
               marvos,
               alice,
               escrow,
-              sampleToken.address,
+              tokenA.address,
               {
                 totalAmount: 10,
                 availableAmount: 10,
@@ -587,8 +581,8 @@ describe('Marvos', () => {
               BigNumber.from(bid.offerTokenAmount),
             )
 
-            await sampleToken.connect(admin).transfer(alice.address, offer.totalAmount)
-            await sampleToken.connect(alice).approve(marvos.address, offer.totalAmount)
+            await tokenA.connect(admin).transfer(alice.address, offer.totalAmount)
+            await tokenA.connect(alice).approve(marvos.address, offer.totalAmount)
             await marvos.connect(alice).createOffer(offer, true)
             await marvos.connect(bob).placeBid(bid, true)
             await marvos.connect(alice).acceptBid(bid.id) // order is created on acceptance
@@ -600,7 +594,7 @@ describe('Marvos', () => {
               .to.emit(marvos, 'BalanceCredited')
               .withArgs(
                 alice.address,
-                sampleToken.address,
+                tokenA.address,
                 2,
                 expectedAvailableAmount,
                 expectedAvailableAmount,
@@ -611,7 +605,7 @@ describe('Marvos', () => {
 
             const balanceOnChain = await marvos.tokenBalances(
               alice.address,
-              sampleToken.address,
+              tokenA.address,
             )
             expect(balanceOnChain).to.eq(expectedAvailableAmount)
           })
