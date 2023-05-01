@@ -1,49 +1,23 @@
 ﻿interface ExternalData {
   // additional text information provided
   note: string
-  supply: Payment
-  demand: Payment
+  supply: null | ExternalItem | ExternalItemCombination
+  demand: null | ExternalItem | ExternalItemCombination
 }
 
-type Payment = null | {
-  items: Items
-  paymentMethods: null | PaymentMethod | PaymentMethod[]
+type ExternalItemCombination = {
+  type: 'combination'
+  rule: 'or' | 'and'
+  items: ExternalItem[]
 }
-
-type PaymentMethod = PlaintextPaymentMethod | EncryptedPaymentMethod
-
-type Items = null | ExternalItem | MultipleItemCombination
 
 type ExternalItem = FungibleExternalItem | NonFungibleExternalItem
 
 type FungibleExternalItem = FiatExternalItem | CryptoExternalItem
 
-interface PlaintextPaymentMethod extends BasePaymentMethod {
-  data: Record<string, string>
-  encryption: null
-}
-
-interface EncryptedPaymentMethod extends BasePaymentMethod {
-  data: {
-    encryptedData: string
-  }
-
-  // litstandard uses Lit Protocol.
-  // custom uses the dispute handler's custom encryption.
-  // when custom is used, the dispute handler must expose an endpoint (/decrypt)
-  // that takes the entire external data and converts all encrypted payment
-  // methods to plain text
-  encryption: 'litstandard' | 'custom'
-}
-
 interface BasePaymentMethod {
   // payment method code from registry
   code: string
-}
-
-interface MultipleItemCombination {
-  rule: 'and' | 'or'
-  values: Array<ExternalItem | MultipleItemCombination>
 }
 
 interface NonFungibleExternalItem {
@@ -61,6 +35,7 @@ interface NonFungibleExternalItem {
 
 interface FiatExternalItem extends BaseFungibleExternalItem {
   type: 'fiat'
+  paymentMethods: PaymentMethod | PaymentMethod[]
 }
 
 interface CryptoExternalItem extends BaseFungibleExternalItem {
@@ -90,4 +65,24 @@ interface NFEIProperty {
   // the integer encoded as hex for 'integer'
   // the decimal encoded as hex with the decimal point in place for 'decimal'
   data: string
+}
+
+type PaymentMethod = PlaintextPaymentMethod | EncryptedPaymentMethod
+
+interface PlaintextPaymentMethod extends BasePaymentMethod {
+  data: Record<string, string>
+  encryption: null
+}
+
+interface EncryptedPaymentMethod extends BasePaymentMethod {
+  data: {
+    encryptedData: string
+  }
+
+  // litstandard uses Lit Protocol.
+  // custom uses the dispute handler's custom encryption.
+  // when custom is used, the dispute handler must expose an endpoint (/decrypt)
+  // that takes the entire external data and converts all encrypted payment
+  // methods to plain text
+  encryption: 'litstandard' | 'custom'
 }
