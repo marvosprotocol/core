@@ -8,13 +8,31 @@
 function createOffer(struct MarvosInterface.Offer offer, bool useBalance) external payable
 ```
 
-_The offer ID can be any randomly generated 32-bytes integer that has not been used.
-The offer must be signed by the dispute manager (escrow) in charge of handling disputes
-should any arise. See the documentation on the Offer struct for more information.
+_Create an offer with the provided offer data using contract token balance when available.
 
-When useBalance is true, the contract will attempt to use the user's balance for the supplied token.
-If the balance is not sufficient, it will charge the user the difference. Take special note when the
-token is the native cryptocurrency. The value specified in the transaction must match the difference._
+Requirements:
+- `id` must be specified and un-used. IDs that represent bids are invalid as offer ids.
+- `status` must be `Active`.
+- `creator` must be the address of the caller.
+- `token` can be the zero address. When it is the zero address, all amount values must be zero.
+- When `token` is the value of {Marvos-COIN_ADDRESS}, `token` refers to the native cryptocurrency of the active
+  blockchain (like ETH or MATIC).
+- When `token` is the zero address, item.hasExternalItem must be true.
+- When `token` is the coin address placeholder, the call must pass `value` equal to `totalAmount`. If useBalance
+  is true, `value` must be equal to `totalAmount` - `balance` (zero if `balance` is greater).
+- If `token` is non-zero and is not the value of the coin address placeholder, `token` must be a valid ERC-20
+  token.
+- `token` must not be blacklisted. See {Marvos-blacklistedTokens}.
+- `token` must not be blacklisted. See {Marvos-blacklistedTokens}.
+- `minAmount` must be less than or equal to `maxAmount` and `totalAmount` must be equal to `availableAmount`
+- `maxAmount` must be less than or equal to `totalAmount`.
+- `orderProcessingTime` must be less than {Marvos-MAXIMUM_ORDER_PROCESSING_TIME}.
+
+Effects:
+- An offer is created with the specified ID.
+- OfferCreated is emitted.
+- The `totalAmount` is transferred from the user's balance to the contract balance to lock the funds for orders.
+- If `useBalance` is true, then `totalAmount` - `balance` is transferred (zero if `balance` is greater)._
 
 ### placeBid
 
@@ -22,11 +40,30 @@ token is the native cryptocurrency. The value specified in the transaction must 
 function placeBid(struct MarvosInterface.Bid bid, bool useBalance) external payable
 ```
 
-_Place a compatible bid on an offer. To be compatible, a bid must be signed by the same
-dispute manager as the offer.
-The bid ID can be any randomly generated 32-bytes integer that has not been used.
-The bid must be signed by the dispute manager (escrow) in charge of handling disputes
-should any arise. See the documentation on the bid struct for more information._
+_Place a compatible bid on an offer.
+
+Requirements:
+- `id` must be specified and un-used. IDs that represent offers are invalid as bid ids.
+- `status` must be `Active`.
+- `creator` must be the address of the caller.
+- `token` can be the zero address. When it is the zero address, all amount values must be zero.
+- When `token` is the value of {Marvos-COIN_ADDRESS}, `token` refers to the native cryptocurrency of the active
+  blockchain (like ETH or MATIC).
+- When `token` is the zero address, item.hasExternalItem must be true.
+- When `token` is the coin address placeholder, the call must pass `value` equal to `totalAmount`. If useBalance
+  is true, `value` must be equal to `totalAmount` - `balance` (zero if `balance` is greater).
+- If `token` is non-zero and is not the value of the coin address placeholder, `token` must be a valid ERC-20
+  token.
+- `token` must not be blacklisted. See {Marvos-blacklistedTokens}.
+- `processingTime` must be less than {Marvos-MAXIMUM_ORDER_PROCESSING_TIME}.
+- `offerTokenAmount` must be less than `offer.maxAmount` and greater than `offer.minAmount`.
+- `item.disputeHandler` must be equal to `offer.item.disputeHandler`.
+
+Effects:
+- A bid is created with the specified ID.
+- BidPlaced is emitted.
+- The `tokenAmount` is transferred from the user's balance to the contract balance to lock the funds for orders.
+- If `useBalance` is true, then `totalAmount` - `balance` is transferred (zero if `balance` is greater)._
 
 ### acceptBid
 
@@ -46,9 +83,17 @@ partially-filled orders. If there are no external items, the exchange is automat
 function updateOfferStatus(uint256 offerId, enum MarvosInterface.OfferStatus status) external
 ```
 
-Pause or cancel an offer. Cancellations is non-reversible.
-Pausing an offer prevents bids from being placed on it until it is unpaused.
-Canceling an offer refunds locked available tokens in the offer and prevents bids from being placed
+_Pause or cancel an offer. Cancellations are non-reversible.
+
+Requirements:
+- `offerId` must be a valid offer and must have been created by the caller.
+- Current `offer.status` must not be `Canceled`.
+- `status` must not be `Unset`.
+
+Effects:
+- OfferStatusChanged is emitted.
+- If `status` is `Canceled`, `offer.availableAmount` is refunded to user's token balance.
+- Bids cannot be placed on offers with any status value other than `Active`._
 
 ### cancelBid
 
@@ -749,13 +794,31 @@ _Emitted when a token is blacklisted or removed from the blacklist._
 function createOffer(struct MarvosInterface.Offer offer, bool useBalance) external payable
 ```
 
-_The offer ID can be any randomly generated 32-bytes integer that has not been used.
-The offer must be signed by the dispute manager (escrow) in charge of handling disputes
-should any arise. See the documentation on the Offer struct for more information.
+_Create an offer with the provided offer data using contract token balance when available.
 
-When useBalance is true, the contract will attempt to use the user's balance for the supplied token.
-If the balance is not sufficient, it will charge the user the difference. Take special note when the
-token is the native cryptocurrency. The value specified in the transaction must match the difference._
+Requirements:
+- `id` must be specified and un-used. IDs that represent bids are invalid as offer ids.
+- `status` must be `Active`.
+- `creator` must be the address of the caller.
+- `token` can be the zero address. When it is the zero address, all amount values must be zero.
+- When `token` is the value of {Marvos-COIN_ADDRESS}, `token` refers to the native cryptocurrency of the active
+  blockchain (like ETH or MATIC).
+- When `token` is the zero address, item.hasExternalItem must be true.
+- When `token` is the coin address placeholder, the call must pass `value` equal to `totalAmount`. If useBalance
+  is true, `value` must be equal to `totalAmount` - `balance` (zero if `balance` is greater).
+- If `token` is non-zero and is not the value of the coin address placeholder, `token` must be a valid ERC-20
+  token.
+- `token` must not be blacklisted. See {Marvos-blacklistedTokens}.
+- `token` must not be blacklisted. See {Marvos-blacklistedTokens}.
+- `minAmount` must be less than or equal to `maxAmount` and `totalAmount` must be equal to `availableAmount`
+- `maxAmount` must be less than or equal to `totalAmount`.
+- `orderProcessingTime` must be less than {Marvos-MAXIMUM_ORDER_PROCESSING_TIME}.
+
+Effects:
+- An offer is created with the specified ID.
+- OfferCreated is emitted.
+- The `totalAmount` is transferred from the user's balance to the contract balance to lock the funds for orders.
+- If `useBalance` is true, then `totalAmount` - `balance` is transferred (zero if `balance` is greater)._
 
 ### updateOfferStatus
 
@@ -763,9 +826,17 @@ token is the native cryptocurrency. The value specified in the transaction must 
 function updateOfferStatus(uint256 offerId, enum MarvosInterface.OfferStatus status) external
 ```
 
-Pause or cancel an offer. Cancellations is non-reversible.
-Pausing an offer prevents bids from being placed on it until it is unpaused.
-Canceling an offer refunds locked available tokens in the offer and prevents bids from being placed
+_Pause or cancel an offer. Cancellations are non-reversible.
+
+Requirements:
+- `offerId` must be a valid offer and must have been created by the caller.
+- Current `offer.status` must not be `Canceled`.
+- `status` must not be `Unset`.
+
+Effects:
+- OfferStatusChanged is emitted.
+- If `status` is `Canceled`, `offer.availableAmount` is refunded to user's token balance.
+- Bids cannot be placed on offers with any status value other than `Active`._
 
 ### placeBid
 
@@ -773,11 +844,30 @@ Canceling an offer refunds locked available tokens in the offer and prevents bid
 function placeBid(struct MarvosInterface.Bid bid, bool useBalance) external payable
 ```
 
-_Place a compatible bid on an offer. To be compatible, a bid must be signed by the same
-dispute manager as the offer.
-The bid ID can be any randomly generated 32-bytes integer that has not been used.
-The bid must be signed by the dispute manager (escrow) in charge of handling disputes
-should any arise. See the documentation on the bid struct for more information._
+_Place a compatible bid on an offer.
+
+Requirements:
+- `id` must be specified and un-used. IDs that represent offers are invalid as bid ids.
+- `status` must be `Active`.
+- `creator` must be the address of the caller.
+- `token` can be the zero address. When it is the zero address, all amount values must be zero.
+- When `token` is the value of {Marvos-COIN_ADDRESS}, `token` refers to the native cryptocurrency of the active
+  blockchain (like ETH or MATIC).
+- When `token` is the zero address, item.hasExternalItem must be true.
+- When `token` is the coin address placeholder, the call must pass `value` equal to `totalAmount`. If useBalance
+  is true, `value` must be equal to `totalAmount` - `balance` (zero if `balance` is greater).
+- If `token` is non-zero and is not the value of the coin address placeholder, `token` must be a valid ERC-20
+  token.
+- `token` must not be blacklisted. See {Marvos-blacklistedTokens}.
+- `processingTime` must be less than {Marvos-MAXIMUM_ORDER_PROCESSING_TIME}.
+- `offerTokenAmount` must be less than `offer.maxAmount` and greater than `offer.minAmount`.
+- `item.disputeHandler` must be equal to `offer.item.disputeHandler`.
+
+Effects:
+- A bid is created with the specified ID.
+- BidPlaced is emitted.
+- The `tokenAmount` is transferred from the user's balance to the contract balance to lock the funds for orders.
+- If `useBalance` is true, then `totalAmount` - `balance` is transferred (zero if `balance` is greater)._
 
 ### acceptBid
 
