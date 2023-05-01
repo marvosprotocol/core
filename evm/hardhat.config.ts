@@ -42,6 +42,10 @@ function getAccountMnemonic() {
   return process.env.MNEMONIC || ''
 }
 
+function getAccountPrivateKey() {
+  return process.env.PRIVATE_KEY || ''
+}
+
 function getDefaultProviderURL(network: string) {
   return `https://${network}.infura.io/v3/${process.env.INFURA_KEY}`
 }
@@ -53,9 +57,11 @@ function setupDefaultNetworkProviders(builderConfig: any) {
       url: getDefaultProviderURL(netConfig.network),
       gas: netConfig.gasPrice || 'auto',
       gasPrice: netConfig.gasPrice || 'auto',
-      accounts: {
-        mnemonic: getAccountMnemonic(),
-      },
+      accounts: getAccountMnemonic()
+        ? {
+            mnemonic: getAccountMnemonic(),
+          }
+        : [getAccountPrivateKey()],
     }
   }
 }
