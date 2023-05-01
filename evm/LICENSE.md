@@ -9,7 +9,7 @@ Parameters
 
 Licensor:             Coindock
 
-Licensed Work:        AnyTroca
+Licensed Work:        Marvos Protocol
                       The Licensed Work is (c) 2023 Coindock
 
 Additional Use Grant: None
