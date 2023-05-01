@@ -1,0 +1,578 @@
+{
+  "manifestVersion": "3.2",
+  "proxies": [
+    {
+      "address": "0xa5343165d51Ea577d63e1a550b1F3c872ADc58e4",
+      "txHash": "0xc65c237ccf94cc52fb288f8e1036c939e079f614b7b6e8f81c2e1184162708c5",
+      "kind": "uups"
+    }
+  ],
+  "impls": {
+    "b172c8d1cb6716f0b9446dd6917b4eb83c52cf9ac43f1643b852a7d65467bf9b": {
+      "address": "0xfBcf1da8f7fe74aA9F7c5829126b2FBe561012B7",
+      "txHash": "0x418123767782a04e61e4f5786a2e5695a38558dc73df7266b22945d6a0f5a1e5",
+      "layout": {
+        "solcVersion": "0.8.18",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\PausableUpgradeable.sol:116"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\access\\OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:211"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:107"
+          },
+          {
+            "label": "usedIds",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_mapping(t_uint256,t_bool)",
+            "contract": "MarvosBase",
+            "src": "contracts\\MarvosBase.sol:52"
+          },
+          {
+            "label": "offers",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_mapping(t_uint256,t_struct(Offer)5425_storage)",
+            "contract": "MarvosBase",
+            "src": "contracts\\MarvosBase.sol:57"
+          },
+          {
+            "label": "bids",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_mapping(t_uint256,t_struct(Bid)5455_storage)",
+            "contract": "MarvosBase",
+            "src": "contracts\\MarvosBase.sol:62"
+          },
+          {
+            "label": "orders",
+            "offset": 0,
+            "slot": "254",
+            "type": "t_mapping(t_uint256,t_struct(Order)5500_storage)",
+            "contract": "MarvosBase",
+            "src": "contracts\\MarvosBase.sol:67"
+          },
+          {
+            "label": "disputes",
+            "offset": 0,
+            "slot": "255",
+            "type": "t_mapping(t_uint256,t_struct(Dispute)5514_storage)",
+            "contract": "MarvosBase",
+            "src": "contracts\\MarvosBase.sol:72"
+          },
+          {
+            "label": "blacklistedTokens",
+            "offset": 0,
+            "slot": "256",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "MarvosBase",
+            "src": "contracts\\MarvosBase.sol:77"
+          },
+          {
+            "label": "tokenBalances",
+            "offset": 0,
+            "slot": "257",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "contract": "MarvosBase",
+            "src": "contracts\\MarvosBase.sol:82"
+          },
+          {
+            "label": "protocolFeePercentage",
+            "offset": 0,
+            "slot": "258",
+            "type": "t_uint16",
+            "contract": "MarvosBase",
+            "src": "contracts\\MarvosBase.sol:87"
+          },
+          {
+            "label": "disputeHandlerFeePercentageCommission",
+            "offset": 2,
+            "slot": "258",
+            "type": "t_uint16",
+            "contract": "MarvosBase",
+            "src": "contracts\\MarvosBase.sol:92"
+          },
+          {
+            "label": "maxDisputeHandlerFeePercentage",
+            "offset": 4,
+            "slot": "258",
+            "type": "t_uint16",
+            "contract": "MarvosBase",
+            "src": "contracts\\MarvosBase.sol:97"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes_storage": {
+            "label": "bytes",
+            "numberOfBytes": "32"
+          },
+          "t_enum(BidStatus)5324": {
+            "label": "enum MarvosInterface.BidStatus",
+            "members": [
+              "Unset",
+              "Active",
+              "Accepted",
+              "Canceled"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(DisputeResolution)5334": {
+            "label": "enum MarvosInterface.DisputeResolution",
+            "members": [
+              "Unresolved",
+              "Complete",
+              "Cancel"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(OfferStatus)5319": {
+            "label": "enum MarvosInterface.OfferStatus",
+            "members": [
+              "Unset",
+              "Active",
+              "Paused",
+              "Canceled"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_enum(OrderStatus)5330": {
+            "label": "enum MarvosInterface.OrderStatus",
+            "members": [
+              "Unset",
+              "Active",
+              "Completed",
+              "Disputed",
+              "Canceled"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Bid)5455_storage)": {
+            "label": "mapping(uint256 => struct MarvosInterface.Bid)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Dispute)5514_storage)": {
+            "label": "mapping(uint256 => struct MarvosInterface.Dispute)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Offer)5425_storage)": {
+            "label": "mapping(uint256 => struct MarvosInterface.Offer)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Order)5500_storage)": {
+            "label": "mapping(uint256 => struct MarvosInterface.Order)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Bid)5455_storage": {
+            "label": "struct MarvosInterface.Bid",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "offerId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "status",
+                "type": "t_enum(BidStatus)5324",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "creator",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "2"
+              },
+              {
+                "label": "offerTokenAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "token",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "tokenAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "processingTime",
+                "type": "t_uint32",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "item",
+                "type": "t_struct(Item)5392_storage",
+                "offset": 0,
+                "slot": "7"
+              }
+            ],
+            "numberOfBytes": "352"
+          },
+          "t_struct(Dispute)5514_storage": {
+            "label": "struct MarvosInterface.Dispute",
+            "members": [
+              {
+                "label": "orderId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "handler",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "resolution",
+                "type": "t_enum(DisputeResolution)5334",
+                "offset": 20,
+                "slot": "1"
+              },
+              {
+                "label": "initData",
+                "type": "t_bytes_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(Item)5392_storage": {
+            "label": "struct MarvosInterface.Item",
+            "members": [
+              {
+                "label": "chargeNonDispute",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "hasExternalItem",
+                "type": "t_bool",
+                "offset": 1,
+                "slot": "0"
+              },
+              {
+                "label": "disputeHandlerFeePercentage",
+                "type": "t_uint16",
+                "offset": 2,
+                "slot": "0"
+              },
+              {
+                "label": "disputeHandler",
+                "type": "t_address",
+                "offset": 4,
+                "slot": "0"
+              },
+              {
+                "label": "disputeHandlerFeeReceiver",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "itemData",
+                "type": "t_bytes_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "disputeHandlerProof",
+                "type": "t_bytes_storage",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_struct(Offer)5425_storage": {
+            "label": "struct MarvosInterface.Offer",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "status",
+                "type": "t_enum(OfferStatus)5319",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "creator",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "1"
+              },
+              {
+                "label": "token",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "minAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "maxAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "totalAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "availableAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "orderProcessingTime",
+                "type": "t_uint32",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "item",
+                "type": "t_struct(Item)5392_storage",
+                "offset": 0,
+                "slot": "8"
+              }
+            ],
+            "numberOfBytes": "384"
+          },
+          "t_struct(Order)5500_storage": {
+            "label": "struct MarvosInterface.Order",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "status",
+                "type": "t_enum(OrderStatus)5330",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "processingTime",
+                "type": "t_uint32",
+                "offset": 1,
+                "slot": "1"
+              },
+              {
+                "label": "creator",
+                "type": "t_address",
+                "offset": 5,
+                "slot": "1"
+              },
+              {
+                "label": "bidder",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "creatorOrderData",
+                "type": "t_struct(OrderData)5472_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "bidderOrderData",
+                "type": "t_struct(OrderData)5472_storage",
+                "offset": 0,
+                "slot": "9"
+              },
+              {
+                "label": "creationTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "15"
+              }
+            ],
+            "numberOfBytes": "512"
+          },
+          "t_struct(OrderData)5472_storage": {
+            "label": "struct MarvosInterface.OrderData",
+            "members": [
+              {
+                "label": "paid",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "receivedOffChainItem",
+                "type": "t_bool",
+                "offset": 1,
+                "slot": "0"
+              },
+              {
+                "label": "token",
+                "type": "t_address",
+                "offset": 2,
+                "slot": "0"
+              },
+              {
+                "label": "tokenAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "item",
+                "type": "t_struct(Item)5392_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "192"
+          },
+          "t_uint16": {
+            "label": "uint16",
+            "numberOfBytes": "2"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint32": {
+            "label": "uint32",
+            "numberOfBytes": "4"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    }
+  }
+}
